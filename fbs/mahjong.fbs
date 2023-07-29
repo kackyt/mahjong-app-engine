@@ -1,0 +1,28 @@
+namespace OpenMahjong;
+
+enum MentsuType : ubyte {
+    TYPE_SHUNTSU,
+    TYPE_KOUTSU,
+    TYPE_MINKAN,
+    TYPE_ATAMA
+}
+
+table Pai {
+    pai: ubyte;
+    id: ubyte;
+}
+
+table Mentsu {
+    type: MentsuType;
+    num: ubyte;
+}
+
+table Player {
+    mentsu: [Mentsu];
+    naki_mentsu: [Mentsu];
+    tehai: [Pai];
+    kawahai: [Pai];
+    is_riichi: bool;
+    is_ippatsu: bool;
+    score: int;
+}
