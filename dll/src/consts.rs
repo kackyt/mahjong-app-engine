@@ -2,12 +2,35 @@ use proc_macros::IncrementalEnum;
 
 pub const MJ_INTERFACE_VERSION: u32 = 12;
 
-/* Messages for player's interface */
-#[derive(IncrementalEnum, PartialEq, Clone, Copy, Debug)]
-#[base(1)]
-#[incr(1)]
-pub enum MJPI {
-    MJPI_INITIALIZE = 1,
+#[macro_export]
+macro_rules! define_incremental_enum {
+    ($name:ident, $start:expr, $($variant:ident),+ $(,)?) => {
+        #[repr(u32)]
+        #[allow(non_camel_case_types)]
+        enum $name {
+            $(
+                $variant = $start + {const _: u32 = $start; _} ,
+                $start += 1,
+            )+
+        }
+
+        impl $name {
+            pub fn from_value(value: u32) -> Option<Self> {
+                match value {
+                    $(
+                        x if x == $name::$variant as u32 => Some($name::$variant),
+                    )+
+                    _ => None,
+                }
+            }
+        }
+    };
+}
+
+define_incremental_enum!(
+    MJPI,
+    1,
+    MJPI_INITIALIZE,
     MJPI_SUTEHAI,
     MJPI_ONACTION,
     MJPI_STARTGAME,
@@ -20,37 +43,7 @@ pub enum MJPI {
     MJPI_BASHOGIME,
     MJPI_ISEXCHANGEABLE,
     MJPI_ONEXCHANGE,
-}
-
-/* Messages for system interface */
-#[derive(IncrementalEnum, PartialEq, Clone, Copy, Debug)]
-#[base(1)]
-#[incr(1)]
-pub enum MJMI {
-    MJMI_GETTEHAI = 1,
-    MJMI_GETKAWA,
-    MJMI_GETDORA,
-    MJMI_GETSCORE,
-    MJMI_GETHONBA,
-    MJMI_GETREACHBOU,
-    MJMI_GETRULE,
-    MJMI_GETVERSION,
-    MJMI_GETMACHI,
-    MJMI_GETAGARITEN,
-    MJMI_GETHAIREMAIN,
-    MJMI_GETVISIBLEHAIS,
-    MJMI_FUKIDASHI,
-    MJMI_KKHAIABILITY,
-    MJMI_GETWAREME,
-    MJMI_SETSTRUCTTYPE,
-    MJMI_SETAUTOFUKIDASHI,
-    MJMI_LASTTSUMOGIRI,
-    MJMI_SSPUTOABILITY,
-    MJMI_GETYAKUHAN,
-    MJMI_GETKYOKU,
-    MJMI_GETKAWAEX,
-    MJMI_ANKANABILITY,
-}
+);
 
 /* Macro */
 pub const MJPIR_SUTEHAI: u32 = 0x00000100;
