@@ -5,9 +5,10 @@ use mahjong_core::{
 use std::{
     fs::File,
     io::{self, BufRead, BufReader, Error},
+    path::Path,
 };
 
-fn parse_testcase(path: &str) -> io::Result<Vec<(Vec<PaiT>, i32)>> {
+fn parse_testcase(path: &Path) -> io::Result<Vec<(Vec<PaiT>, i32)>> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
     let mut pai_vec: Vec<(Vec<PaiT>, i32)> = Vec::new();
@@ -38,7 +39,8 @@ fn parse_testcase(path: &str) -> io::Result<Vec<(Vec<PaiT>, i32)>> {
 
 #[test]
 fn calc_hon_shanten_test() -> Result<(), Error> {
-    let case1 = parse_testcase("tests/data/p_normal_10000.txt")?;
+    let filepath = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/p_normal_10000.txt");
+    let case1 = parse_testcase(&filepath)?;
     let mut lines = 1;
 
     for case in case1 {

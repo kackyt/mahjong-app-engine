@@ -70,10 +70,10 @@ pub fn mentsu_count(hai_count: &mut [i32; 9], n: usize) -> [(i32, i32, i32); 2] 
         hai_count[n + 2] += 1;
         r[0].0 += 1;
         r[1].0 += 1;
-        if r[0].2 > max_count[0].2 || (r[0].2 == max_count[0].2 && r[0].1 > max_count[0].1) {
+        if r[0].2 < max_count[0].2 || (r[0].2 == max_count[0].2 && r[0].1 < max_count[0].1) {
             max_count[0] = r[0];
         }
-        if r[1].2 > max_count[1].2 || (r[1].2 == max_count[1].2 && r[1].1 > max_count[1].1) {
+        if r[1].0 > max_count[1].0 || (r[1].0 == max_count[1].0 && r[1].1 > max_count[1].1) {
             max_count[1] = r[1];
         }
     }
@@ -85,10 +85,10 @@ pub fn mentsu_count(hai_count: &mut [i32; 9], n: usize) -> [(i32, i32, i32); 2] 
         hai_count[n] += 3;
         r2[0].0 += 1;
         r2[1].0 += 1;
-        if r2[0].2 > max_count[0].2 || (r2[0].2 == max_count[0].2 && r2[0].1 > max_count[0].1) {
+        if r2[0].2 < max_count[0].2 || (r2[0].2 == max_count[0].2 && r2[0].1 < max_count[0].1) {
             max_count[0] = r2[0];
         }
-        if r2[1].2 > max_count[1].2 || (r2[1].2 == max_count[1].2 && r2[1].1 > max_count[1].1) {
+        if r2[1].0 > max_count[1].0 || (r2[1].0 == max_count[1].0 && r2[1].1 > max_count[1].1) {
             max_count[1] = r2[1];
         }
     }
@@ -137,7 +137,7 @@ impl PaiState {
                 z.0 += 1;
             } else if self.hai_count_z[n] == 2 {
                 z.1 += 1;
-            } else {
+            } else if self.hai_count_z[n] == 1 {
                 z.2 += 1;
             }
         }
