@@ -1,7 +1,7 @@
 [workspace]
 
 members = [
-    "mahjong-core",
-    "ai-dll",
-    "proc-macros",
+    "mahjong_core",
+    "ai_dll",
+    "proc_macros",
 ]

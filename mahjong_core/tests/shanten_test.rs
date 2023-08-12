@@ -1,0 +1,53 @@
+use mahjong_core::{
+    mahjong_generated::open_mahjong::{Mentsu, MentsuFlag, PaiT},
+    shanten::PaiState,
+};
+use std::{
+    fs::File,
+    io::{self, BufRead, BufReader, Error},
+};
+
+fn parse_testcase(path: &str) -> io::Result<Vec<(Vec<PaiT>, i32)>> {
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let mut pai_vec: Vec<(Vec<PaiT>, i32)> = Vec::new();
+
+    for line in reader.lines() {
+        let line = line?;
+        let numbers: Vec<i32> = line
+            .split_whitespace()
+            .filter_map(|word| word.parse().ok())
+            .collect();
+
+        let mut pai_array: Vec<PaiT> = Vec::new();
+
+        for i in 0..14 {
+            let mut p: PaiT = Default::default();
+
+            p.pai_num = numbers[i] as u8;
+            pai_array.push(p);
+        }
+
+        let min_shanten = numbers[14].min(numbers[15]).min(numbers[16]);
+
+        pai_vec.push((pai_array, min_shanten));
+    }
+
+    Ok(pai_vec)
+}
+
+#[test]
+fn calc_hon_shanten_test() -> Result<(), Error> {
+    let case1 = parse_testcase("tests/data/p_normal_10000.txt")?;
+    let mut lines = 1;
+
+    for case in case1 {
+        let mut state = PaiState::from(&case.0);
+        println!("case {}", lines);
+
+        assert_eq!(state.get_shanten(), case.1);
+        lines += 1;
+    }
+
+    Ok(())
+}

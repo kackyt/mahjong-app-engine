@@ -4,24 +4,41 @@ enum MentsuType : ubyte {
     TYPE_SHUNTSU,
     TYPE_KOUTSU,
     TYPE_MINKAN,
+    TYPE_ANKAN,
     TYPE_ATAMA
 }
 
 table Pai {
-    pai: ubyte;
+    pai_num: ubyte;
     id: ubyte;
+    is_tsumogiri: bool = false;
+    is_riichi: bool = false;
+    is_nakare: bool = false;
+}
+
+enum MentsuFlag : ubyte {
+    FLAG_NONE,
+    FLAG_KAMICHA,
+    FLAG_TOIMEN,
+    FLAG_SIMOCHA,
+}
+
+table MentsuPai {
+    pai_num: ubyte;
+    id: ubyte;
+    flag: MentsuFlag = FLAG_NONE;
 }
 
 table Mentsu {
-    type: MentsuType;
-    num: ubyte;
+    pai_list: [MentsuPai];
 }
 
 table Player {
+    name: string;
     mentsu: [Mentsu];
-    naki_mentsu: [Mentsu];
     tehai: [Pai];
     kawahai: [Pai];
+    tsumohai: Pai;
     is_riichi: bool;
     is_ippatsu: bool;
     score: int;
