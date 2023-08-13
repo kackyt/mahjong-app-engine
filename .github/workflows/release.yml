@@ -1,0 +1,33 @@
+name: Deploy to POC
+on:
+  pull_request:
+    types:
+     - closed
+    branches:
+     - master
+  push:
+    tags:
+      - '*'
+  workflow_dispatch: {}
+env:
+  cache-unique-key: themis
+permissions:
+  id-token: write
+  contents: read
+jobs:
+  release:
+    permissions:
+      # write permission is required to create a github release
+      contents: write
+      # write permission is required for autolabeler
+      # otherwise, read permission is required at least
+      pull-requests: read
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.merged == true }}
+    steps:
+      - name: Create Release
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          publish: true
