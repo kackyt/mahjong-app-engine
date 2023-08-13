@@ -1,6 +1,6 @@
 use std::ptr::null;
 
-use consts::MJPI;
+// use consts::MJPI;
 
 mod consts;
 
@@ -26,7 +26,7 @@ pub extern "stdcall" fn MJPInterfaceFunc(
     param1: u32,
     param2: u32,
 ) -> u32 {
-    use consts::MJMI;
+    // use consts::MJMI;
 
     let name: &'static str = "test\0";
     let name_ptr = name.as_ptr();
@@ -39,16 +39,17 @@ pub extern "stdcall" fn MJPInterfaceFunc(
             0
         }
         Some(MJPI::MJPI_SUTEHAI) => {
-            unsafe {
-                if let Some(ptr) = message_func {
-                    ptr(
-                        inst,
-                        MJMI::MJMI_FUKIDASHI as u32,
-                        "testes\0".as_ptr() as u32,
-                        0u32,
-                    );
-                }
-            }
+            /*             unsafe {
+                           if let Some(ptr) = message_func {
+                               ptr(
+                                   inst,
+                                   MJMI::MJMI_FUKIDASHI as u32,
+                                   "testes\0".as_ptr() as u32,
+                                   0u32,
+                               );
+                           }
+                       }
+            */
             consts::MJPIR_SUTEHAI | 13
         }
         Some(MJPI::MJPI_YOURNAME) => name_ptr as u32,

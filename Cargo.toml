@@ -2,6 +2,5 @@
 
 members = [
     "mahjong_core",
-    "ai_dll",
     "proc_macros",
 ]

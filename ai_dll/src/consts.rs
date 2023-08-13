@@ -2,7 +2,7 @@ use proc_macros::IncrementalEnum;
 
 pub const MJ_INTERFACE_VERSION: u32 = 12;
 
-#[macro_export]
+/* #[macro_export]
 macro_rules! define_incremental_enum {
     ($name:ident, $start:expr, $($variant:ident),+ $(,)?) => {
         #[repr(u32)]
@@ -43,7 +43,7 @@ define_incremental_enum!(
     MJPI_BASHOGIME,
     MJPI_ISEXCHANGEABLE,
     MJPI_ONEXCHANGE,
-);
+); */
 
 /* Macro */
 pub const MJPIR_SUTEHAI: u32 = 0x00000100;
