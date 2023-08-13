@@ -1,0 +1,15 @@
+name: pull request label
+on:
+  pull_request:
+    types: [opened]
+permissions:
+  pull-requests: write
+  contents: read
+jobs:
+  pr-labeler:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: TimonVS/pr-labeler-action@v4
+        name: make label
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}

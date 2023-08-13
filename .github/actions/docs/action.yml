@@ -1,0 +1,33 @@
+name: doc
+description: build Rust API documents
+inputs:
+  role_arn:
+    description: what to switch AWS role
+    required: true
+runs:
+  using: composite
+  steps:
+    - name: setup-nasm
+      uses: ilammy/setup-nasm@v1
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        target: x86_64-unknown-linux-gnu
+    - name: Build target
+      uses: ClementTsang/cargo-action@v0.0.3
+      with:
+        command: doc
+        directory: rust-lib
+        args: '--no-deps'
+    - name: Assume role
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-region: ap-northeast-1
+        role-to-assume: ${{ inputs.role_arn }}
+        role-skip-session-tagging: true
+        role-duration-seconds: 1200
+    - run: aws s3 sync rust-lib/target/doc/ s3://themis-poc-frontend-s3/docs --delete --exclude 'src/*'
+      shell: bash

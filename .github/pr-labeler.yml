@@ -1,0 +1,11 @@
+feature:
+  - 'feature/*'
+  - 'feat/*'
+bug:
+  - 'fix/*'
+minor:
+  - 'release/*'
+  - 'feature/*'
+  - 'feat/*'
+chore:
+  - 'chore/*'

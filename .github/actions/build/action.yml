@@ -1,0 +1,21 @@
+name: build
+description: build action
+inputs:
+  target:
+    description: build target
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - name: Install rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        profile: minimal
+        override: true
+        target: ${{ inputs.target }}
+    - name: Build target
+      uses: ClementTsang/cargo-action@v0.0.3
+      with:
+        command: build
+        args: --release --target ${{ inputs.target }}
