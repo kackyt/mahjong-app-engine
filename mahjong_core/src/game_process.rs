@@ -1,4 +1,7 @@
-use crate::mahjong_generated::open_mahjong::{Bahai, GameStateT};
+use crate::{
+    fbs_utils::BahaiControl,
+    mahjong_generated::open_mahjong::{Bahai, GameStateT},
+};
 
 impl GameStateT {
     pub fn create(&mut self, title: &[u8], player_len: u32) {

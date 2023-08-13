@@ -1,4 +1,4 @@
-use crate::mahjong_generated::open_mahjong::{Bahai, FixedString, FixedStringT, Pai};
+use crate::mahjong_generated::open_mahjong::{Bahai, BahaiT, FixedString, FixedStringT, Pai, PaiT};
 use rand::prelude::SliceRandom;
 
 impl From<&[u8]> for FixedStringT {
@@ -105,8 +105,14 @@ impl Into<Vec<u8>> for FixedString {
     }
 }
 
-impl Bahai {
-    pub fn create_shuffled() -> Self {
+pub trait BahaiControl {
+    fn create_shuffled() -> Self;
+    fn search(&self, target: &PaiT) -> Result<usize, ()>;
+    fn get(&self, index: usize) -> Result<PaiT, ()>;
+}
+
+impl BahaiControl for Bahai {
+    fn create_shuffled() -> Self {
         // Pai配列の初期化
         let mut hai_array: Vec<Pai> = Vec::new();
         let mut rng = rand::thread_rng();
@@ -114,7 +120,7 @@ impl Bahai {
         let mut dst2 = [Pai::new(0, 0, false, false, false); 8];
         let mut s = Self::new(&dst, &dst, &dst, &dst, &dst2);
 
-        for pai_num in 0..32u8 {
+        for pai_num in 0..34u8 {
             for id in 1..=4u8 {
                 hai_array.push(Pai::new(pai_num, id, false, false, false));
             }
@@ -136,5 +142,58 @@ impl Bahai {
         s.set_n5(&dst2);
 
         s
+    }
+
+    fn search(&self, target: &PaiT) -> Result<usize, ()> {
+        self.unpack().search(target)
+    }
+
+    fn get(&self, index: usize) -> Result<PaiT, ()> {
+        self.unpack().get(index)
+    }
+}
+
+impl BahaiControl for BahaiT {
+    fn create_shuffled() -> Self {
+        Bahai::create_shuffled().unpack()
+    }
+
+    fn search(&self, target: &PaiT) -> Result<usize, ()> {
+        if let Some(idx) = self.n1.iter().position(|item| item == target) {
+            return Ok(idx);
+        }
+        if let Some(idx) = self.n2.iter().position(|item| item == target) {
+            return Ok(idx + 32);
+        }
+        if let Some(idx) = self.n3.iter().position(|item| item == target) {
+            return Ok(idx + 64);
+        }
+        if let Some(idx) = self.n4.iter().position(|item| item == target) {
+            return Ok(idx + 96);
+        }
+        if let Some(idx) = self.n5.iter().position(|item| item == target) {
+            return Ok(idx + 128);
+        }
+        Err(())
+    }
+
+    fn get(&self, index: usize) -> Result<PaiT, ()> {
+        if index < 32 {
+            return Ok(self.n1[index].clone());
+        }
+        if index < 64 {
+            return Ok(self.n2[index - 32].clone());
+        }
+        if index < 96 {
+            return Ok(self.n3[index - 64].clone());
+        }
+        if index < 128 {
+            return Ok(self.n4[index - 96].clone());
+        }
+        if index < 136 {
+            return Ok(self.n5[index - 128].clone());
+        }
+
+        Err(())
     }
 }
