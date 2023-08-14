@@ -1,4 +1,4 @@
-use crate::mahjong_generated::open_mahjong::{Mentsu, MentsuFlag, Pai};
+use crate::mahjong_generated::open_mahjong::{Mentsu, MentsuFlag, PaiT};
 use itertools::iproduct;
 
 /// 牌姿の内部表現
@@ -9,7 +9,6 @@ pub struct PaiState {
     pub hai_count_z: [i32; 7],
     pub fulo: Vec<Mentsu>,
     pub num_dora: i32,
-    pub tsumohai: Option<Pai>,
 }
 
 pub fn shanten(mut n_mentsu: i32, mut n_tahtsu: i32, mut n_koritsu: i32, b_atama: bool) -> i32 {
@@ -97,14 +96,14 @@ pub fn mentsu_count(hai_count: &mut [i32; 9], n: usize) -> [(i32, i32, i32); 2] 
 }
 
 impl PaiState {
-    pub fn from(value: &Vec<Pai>) -> Self {
+    pub fn from(value: &Vec<PaiT>) -> Self {
         let mut hai_count_m: [i32; 9] = [0; 9];
         let mut hai_count_p: [i32; 9] = [0; 9];
         let mut hai_count_s: [i32; 9] = [0; 9];
         let mut hai_count_z: [i32; 7] = [0; 7];
 
         for hai in value.iter() {
-            let num = hai.pai_num() as usize;
+            let num = hai.pai_num as usize;
             if num < 9 {
                 hai_count_m[num] += 1;
             } else if num < 18 {
@@ -122,7 +121,6 @@ impl PaiState {
             hai_count_z,
             fulo: vec![],
             num_dora: 0,
-            tsumohai: None,
         }
     }
 
@@ -193,10 +191,10 @@ impl PaiState {
     }
 }
 
-impl Pai {
+impl PaiT {
     pub fn is_valid(&self) -> bool {
-        let num = self.pai_num();
-        let id = self.id();
+        let num = self.pai_num;
+        let id = self.id;
 
         if id >= 4 {
             return false;

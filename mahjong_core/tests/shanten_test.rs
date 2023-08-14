@@ -1,14 +1,14 @@
-use mahjong_core::{mahjong_generated::open_mahjong::Pai, shanten::PaiState};
+use mahjong_core::{mahjong_generated::open_mahjong::PaiT, shanten::PaiState};
 use std::{
     fs::File,
     io::{self, BufRead, BufReader, Error},
     path::Path,
 };
 
-fn parse_testcase(path: &Path) -> io::Result<Vec<(Vec<Pai>, i32)>> {
+fn parse_testcase(path: &Path) -> io::Result<Vec<(Vec<PaiT>, i32)>> {
     let file = File::open(path)?;
     let reader = BufReader::new(file);
-    let mut pai_vec: Vec<(Vec<Pai>, i32)> = Vec::new();
+    let mut pai_vec: Vec<(Vec<PaiT>, i32)> = Vec::new();
 
     for line in reader.lines() {
         let line = line?;
@@ -17,10 +17,16 @@ fn parse_testcase(path: &Path) -> io::Result<Vec<(Vec<Pai>, i32)>> {
             .filter_map(|word| word.parse().ok())
             .collect();
 
-        let mut pai_array: Vec<Pai> = Vec::new();
+        let mut pai_array: Vec<PaiT> = Vec::new();
 
         for i in 0..14 {
-            let p = Pai::new(numbers[i] as u8, 1, false, false, false);
+            let p = PaiT {
+                pai_num: numbers[i] as u8,
+                id: 1,
+                is_tsumogiri: false,
+                is_riichi: false,
+                is_nakare: false
+            };
 
             pai_array.push(p);
         }

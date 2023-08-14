@@ -1,5 +1,37 @@
-use crate::mahjong_generated::open_mahjong::{Bahai, BahaiT, FixedString, FixedStringT, Pai, PaiT};
+use std::ops::Range;
+
+use crate::mahjong_generated::open_mahjong::{Taku, TakuT, FixedString, FixedStringT, Pai, PaiT};
 use rand::prelude::SliceRandom;
+
+impl PartialOrd for PaiT {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        match self.pai_num.partial_cmp(&other.pai_num) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+        match self.id.partial_cmp(&other.id) {
+            Some(core::cmp::Ordering::Equal) => {}
+            ord => return ord,
+        }
+
+        None
+    }
+}
+
+impl Eq for PaiT {
+}
+
+impl Ord for PaiT {
+    fn cmp(&self, other: &Self) -> std::cmp::Ordering {
+        match self.pai_num.cmp(&other.pai_num) {
+            std::cmp::Ordering::Equal => {}
+            ord => return ord,
+        }
+
+        self.id.cmp(&other.id)
+    }
+}
+
 
 impl From<&[u8]> for FixedStringT {
     fn from(src: &[u8]) -> Self {
@@ -105,20 +137,21 @@ impl Into<Vec<u8>> for FixedString {
     }
 }
 
-pub trait BahaiControl {
+pub trait TakuControl {
     fn create_shuffled() -> Self;
     fn search(&self, target: &PaiT) -> Result<usize, ()>;
     fn get(&self, index: usize) -> Result<PaiT, ()>;
+    fn get_range(&self, r: Range<usize>) -> Result<Vec<PaiT>, ()>;
 }
 
-impl BahaiControl for Bahai {
+impl TakuControl for Taku {
     fn create_shuffled() -> Self {
         // Pai配列の初期化
         let mut hai_array: Vec<Pai> = Vec::new();
         let mut rng = rand::thread_rng();
         let mut dst = [Pai::new(0, 0, false, false, false); 32];
         let mut dst2 = [Pai::new(0, 0, false, false, false); 8];
-        let mut s = Self::new(&dst, &dst, &dst, &dst, &dst2);
+        let mut s = Self::new(&dst, &dst, &dst, &dst, &dst2, 0);
 
         for pai_num in 0..34u8 {
             for id in 1..=4u8 {
@@ -141,6 +174,8 @@ impl BahaiControl for Bahai {
         dst2.copy_from_slice(&hai_array[128..136]);
         s.set_n5(&dst2);
 
+        s.set_length(136);
+
         s
     }
 
@@ -151,11 +186,15 @@ impl BahaiControl for Bahai {
     fn get(&self, index: usize) -> Result<PaiT, ()> {
         self.unpack().get(index)
     }
+
+    fn get_range(&self, r: Range<usize>) -> Result<Vec<PaiT>, ()> {
+        self.unpack().get_range(r)
+    }
 }
 
-impl BahaiControl for BahaiT {
+impl TakuControl for TakuT {
     fn create_shuffled() -> Self {
-        Bahai::create_shuffled().unpack()
+        Taku::create_shuffled().unpack()
     }
 
     fn search(&self, target: &PaiT) -> Result<usize, ()> {
@@ -195,5 +234,96 @@ impl BahaiControl for BahaiT {
         }
 
         Err(())
+    }
+
+    fn get_range(&self, r: Range<usize>) -> Result<Vec<PaiT>, ()> {
+        // range check
+        if r.end >= self.length as usize {
+            return Err(())
+        }
+        let st = (r.start / 32, r.start % 32);
+        let ed = (r.end / 32, r.end % 32);
+        let mut v: Vec<PaiT> = Vec::new();
+        let mut rstart = 0usize;
+        let mut rend = 0usize;
+
+        if st.0 == 0 {
+            rstart = st.1;
+            if ed.0 == 0 {
+                rend = ed.1;
+            } else {
+                rend = self.n1.len();
+            }
+            let mut nx:Vec<PaiT> = self.n1[rstart..rend].iter().cloned().collect();
+
+            nx.append(&mut v);
+        }
+
+
+        if st.0 <= 1 && ed.0 >= 1 {
+            if st.0 == 1 {
+                rstart = st.1;
+            } else {
+                rstart = 0;
+            }
+            if ed.0 == 1 {
+                rend = ed.1;
+            } else {
+                rend = self.n2.len();
+            }
+            let mut nx:Vec<PaiT> = self.n2[rstart..rend].iter().cloned().collect();
+
+            nx.append(&mut v);
+        }
+
+        if st.0 <= 2 && ed.0 >= 2 {
+            if st.0 == 2 {
+                rstart = st.1;
+            } else {
+                rstart = 0;
+            }
+            if ed.0 == 2 {
+                rend = ed.1;
+            } else {
+                rend = self.n3.len();
+            }
+            let mut nx:Vec<PaiT> = self.n3[rstart..rend].iter().cloned().collect();
+
+            nx.append(&mut v);
+        }
+
+        if st.0 <= 3 && ed.0 >= 3 {
+            if st.0 == 3 {
+                rstart = st.1;
+            } else {
+                rstart = 0;
+            }
+            if ed.0 == 3 {
+                rend = ed.1;
+            } else {
+                rend = self.n4.len();
+            }
+            let mut nx:Vec<PaiT> = self.n4[rstart..rend].iter().cloned().collect();
+
+            nx.append(&mut v);
+        }
+
+        if st.0 <= 4 && ed.0 >= 4 {
+            if st.0 == 4 {
+                rstart = st.1;
+            } else {
+                rstart = 0;
+            }
+            if ed.0 == 4 {
+                rend = ed.1;
+            } else {
+                rend = self.n5.len();
+            }
+            let mut nx:Vec<PaiT> = self.n5[rstart..rend].iter().cloned().collect();
+
+            nx.append(&mut v);
+        }
+
+        Ok(v)
     }
 }

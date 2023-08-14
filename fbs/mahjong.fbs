@@ -11,6 +11,16 @@ struct FixedString {
     n8: [ubyte: 32];
 }
 
+enum ActionType : uint {
+    ACTION_SYNC,
+    ACTION_SUTEHAI,
+    ACTION_CHII,
+    ACTION_PON,
+    ACTION_KAN,
+    ACTION_TSUMO,
+    ACTION_NAGASHI,
+}
+
 enum MentsuType : ubyte {
     TYPE_SHUNTSU,
     TYPE_KOUTSU,
@@ -27,12 +37,13 @@ struct Pai {
     is_nakare: bool = false;
 }
 
-struct Bahai {
+struct Taku {
     n1: [Pai: 32];
     n2: [Pai: 32];
     n3: [Pai: 32];
     n4: [Pai: 32];
     n5: [Pai: 8];
+    length: uint;
 }
 
 enum MentsuFlag : ubyte {
@@ -77,6 +88,6 @@ struct GameState {
     tsumobou: uint = 0;
     riichibou: uint = 0;
     teban: uint = 0;
-    bahai: Bahai;
-    bahai_cursol: uint;
+    taku: Taku;
+    taku_cursol: uint;
 }

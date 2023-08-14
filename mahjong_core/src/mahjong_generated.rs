@@ -19,6 +19,111 @@ pub mod open_mahjong {
   use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_ACTION_TYPE: u32 = 0;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_ACTION_TYPE: u32 = 6;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 7] = [
+  ActionType::ACTION_SYNC,
+  ActionType::ACTION_SUTEHAI,
+  ActionType::ACTION_CHII,
+  ActionType::ACTION_PON,
+  ActionType::ACTION_KAN,
+  ActionType::ACTION_TSUMO,
+  ActionType::ACTION_NAGASHI,
+];
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[repr(transparent)]
+pub struct ActionType(pub u32);
+#[allow(non_upper_case_globals)]
+impl ActionType {
+  pub const ACTION_SYNC: Self = Self(0);
+  pub const ACTION_SUTEHAI: Self = Self(1);
+  pub const ACTION_CHII: Self = Self(2);
+  pub const ACTION_PON: Self = Self(3);
+  pub const ACTION_KAN: Self = Self(4);
+  pub const ACTION_TSUMO: Self = Self(5);
+  pub const ACTION_NAGASHI: Self = Self(6);
+
+  pub const ENUM_MIN: u32 = 0;
+  pub const ENUM_MAX: u32 = 6;
+  pub const ENUM_VALUES: &'static [Self] = &[
+    Self::ACTION_SYNC,
+    Self::ACTION_SUTEHAI,
+    Self::ACTION_CHII,
+    Self::ACTION_PON,
+    Self::ACTION_KAN,
+    Self::ACTION_TSUMO,
+    Self::ACTION_NAGASHI,
+  ];
+  /// Returns the variant's name or "" if unknown.
+  pub fn variant_name(self) -> Option<&'static str> {
+    match self {
+      Self::ACTION_SYNC => Some("ACTION_SYNC"),
+      Self::ACTION_SUTEHAI => Some("ACTION_SUTEHAI"),
+      Self::ACTION_CHII => Some("ACTION_CHII"),
+      Self::ACTION_PON => Some("ACTION_PON"),
+      Self::ACTION_KAN => Some("ACTION_KAN"),
+      Self::ACTION_TSUMO => Some("ACTION_TSUMO"),
+      Self::ACTION_NAGASHI => Some("ACTION_NAGASHI"),
+      _ => None,
+    }
+  }
+}
+impl core::fmt::Debug for ActionType {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    if let Some(name) = self.variant_name() {
+      f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
+    }
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for ActionType {
+  type Inner = Self;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<u32>(buf, loc);
+    Self(b)
+  }
+}
+
+impl flatbuffers::Push for ActionType {
+    type Output = ActionType;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        flatbuffers::emplace_scalar::<u32>(dst, self.0);
+    }
+}
+
+impl flatbuffers::EndianScalar for ActionType {
+  type Scalar = u32;
+  #[inline]
+  fn to_little_endian(self) -> u32 {
+    self.0.to_le()
+  }
+  #[inline]
+  #[allow(clippy::wrong_self_convention)]
+  fn from_little_endian(v: u32) -> Self {
+    let b = u32::from_le(v);
+    Self(b)
+  }
+}
+
+impl<'a> flatbuffers::Verifiable for ActionType {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    u32::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for ActionType {}
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_MENTSU_TYPE: u8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_MENTSU_TYPE: u8 = 4;
@@ -691,52 +796,53 @@ impl PaiT {
   }
 }
 
-// struct Bahai, aligned to 1
+// struct Taku, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct Bahai(pub [u8; 680]);
-impl Default for Bahai { 
+pub struct Taku(pub [u8; 684]);
+impl Default for Taku { 
   fn default() -> Self { 
-    Self([0; 680])
+    Self([0; 684])
   }
 }
-impl core::fmt::Debug for Bahai {
+impl core::fmt::Debug for Taku {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
-    f.debug_struct("Bahai")
+    f.debug_struct("Taku")
       .field("n1", &self.n1())
       .field("n2", &self.n2())
       .field("n3", &self.n3())
       .field("n4", &self.n4())
       .field("n5", &self.n5())
+      .field("length", &self.length())
       .finish()
   }
 }
 
-impl flatbuffers::SimpleToVerifyInSlice for Bahai {}
-impl<'a> flatbuffers::Follow<'a> for Bahai {
-  type Inner = &'a Bahai;
+impl flatbuffers::SimpleToVerifyInSlice for Taku {}
+impl<'a> flatbuffers::Follow<'a> for Taku {
+  type Inner = &'a Taku;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    <&'a Bahai>::follow(buf, loc)
+    <&'a Taku>::follow(buf, loc)
   }
 }
-impl<'a> flatbuffers::Follow<'a> for &'a Bahai {
-  type Inner = &'a Bahai;
+impl<'a> flatbuffers::Follow<'a> for &'a Taku {
+  type Inner = &'a Taku;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    flatbuffers::follow_cast_ref::<Bahai>(buf, loc)
+    flatbuffers::follow_cast_ref::<Taku>(buf, loc)
   }
 }
-impl<'b> flatbuffers::Push for Bahai {
-    type Output = Bahai;
+impl<'b> flatbuffers::Push for Taku {
+    type Output = Taku;
     #[inline]
     unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
-        let src = ::core::slice::from_raw_parts(self as *const Bahai as *const u8, Self::size());
+        let src = ::core::slice::from_raw_parts(self as *const Taku as *const u8, Self::size());
         dst.copy_from_slice(src);
     }
 }
 
-impl<'a> flatbuffers::Verifiable for Bahai {
+impl<'a> flatbuffers::Verifiable for Taku {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
@@ -746,7 +852,7 @@ impl<'a> flatbuffers::Verifiable for Bahai {
   }
 }
 
-impl<'a> Bahai {
+impl<'a> Taku {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     n1: &[Pai; 32],
@@ -754,13 +860,15 @@ impl<'a> Bahai {
     n3: &[Pai; 32],
     n4: &[Pai; 32],
     n5: &[Pai; 8],
+    length: u32,
   ) -> Self {
-    let mut s = Self([0; 680]);
+    let mut s = Self([0; 684]);
     s.set_n1(n1);
     s.set_n2(n2);
     s.set_n3(n3);
     s.set_n4(n4);
     s.set_n5(n5);
+    s.set_length(length);
     s
   }
 
@@ -864,33 +972,65 @@ impl<'a> Bahai {
     }
   }
 
-  pub fn unpack(&self) -> BahaiT {
-    BahaiT {
+  pub fn length(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[680..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_length(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[680..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn unpack(&self) -> TakuT {
+    TakuT {
       n1: { let n1 = self.n1(); flatbuffers::array_init(|i| n1.get(i).unpack()) },
       n2: { let n2 = self.n2(); flatbuffers::array_init(|i| n2.get(i).unpack()) },
       n3: { let n3 = self.n3(); flatbuffers::array_init(|i| n3.get(i).unpack()) },
       n4: { let n4 = self.n4(); flatbuffers::array_init(|i| n4.get(i).unpack()) },
       n5: { let n5 = self.n5(); flatbuffers::array_init(|i| n5.get(i).unpack()) },
+      length: self.length(),
     }
   }
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct BahaiT {
+pub struct TakuT {
   pub n1: [PaiT; 32],
   pub n2: [PaiT; 32],
   pub n3: [PaiT; 32],
   pub n4: [PaiT; 32],
   pub n5: [PaiT; 8],
+  pub length: u32,
 }
-impl BahaiT {
-  pub fn pack(&self) -> Bahai {
-    Bahai::new(
+impl TakuT {
+  pub fn pack(&self) -> Taku {
+    Taku::new(
       &flatbuffers::array_init(|i| self.n1[i].pack()),
       &flatbuffers::array_init(|i| self.n2[i].pack()),
       &flatbuffers::array_init(|i| self.n3[i].pack()),
       &flatbuffers::array_init(|i| self.n4[i].pack()),
       &flatbuffers::array_init(|i| self.n5[i].pack()),
+      self.length,
     )
   }
 }
@@ -1645,10 +1785,10 @@ impl PlayerT {
 // struct GameState, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct GameState(pub [u8; 3012]);
+pub struct GameState(pub [u8; 3016]);
 impl Default for GameState { 
   fn default() -> Self { 
-    Self([0; 3012])
+    Self([0; 3016])
   }
 }
 impl core::fmt::Debug for GameState {
@@ -1662,8 +1802,8 @@ impl core::fmt::Debug for GameState {
       .field("tsumobou", &self.tsumobou())
       .field("riichibou", &self.riichibou())
       .field("teban", &self.teban())
-      .field("bahai", &self.bahai())
-      .field("bahai_cursol", &self.bahai_cursol())
+      .field("taku", &self.taku())
+      .field("taku_cursol", &self.taku_cursol())
       .finish()
   }
 }
@@ -1713,10 +1853,10 @@ impl<'a> GameState {
     tsumobou: u32,
     riichibou: u32,
     teban: u32,
-    bahai: &Bahai,
-    bahai_cursol: u32,
+    taku: &Taku,
+    taku_cursol: u32,
   ) -> Self {
-    let mut s = Self([0; 3012]);
+    let mut s = Self([0; 3016]);
     s.set_title(title);
     s.set_players(players);
     s.set_player_len(player_len);
@@ -1725,8 +1865,8 @@ impl<'a> GameState {
     s.set_tsumobou(tsumobou);
     s.set_riichibou(riichibou);
     s.set_teban(teban);
-    s.set_bahai(bahai);
-    s.set_bahai_cursol(bahai_cursol);
+    s.set_taku(taku);
+    s.set_taku_cursol(taku_cursol);
     s
   }
 
@@ -1936,26 +2076,26 @@ impl<'a> GameState {
     }
   }
 
-  pub fn bahai(&self) -> &Bahai {
+  pub fn taku(&self) -> &Taku {
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid struct in this slot
-    unsafe { &*(self.0[2328..].as_ptr() as *const Bahai) }
+    unsafe { &*(self.0[2328..].as_ptr() as *const Taku) }
   }
 
   #[allow(clippy::identity_op)]
-  pub fn set_bahai(&mut self, x: &Bahai) {
-    self.0[2328..2328 + 680].copy_from_slice(&x.0)
+  pub fn set_taku(&mut self, x: &Taku) {
+    self.0[2328..2328 + 684].copy_from_slice(&x.0)
   }
 
-  pub fn bahai_cursol(&self) -> u32 {
+  pub fn taku_cursol(&self) -> u32 {
     let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[3008..].as_ptr(),
+        self.0[3012..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -1963,7 +2103,7 @@ impl<'a> GameState {
     })
   }
 
-  pub fn set_bahai_cursol(&mut self, x: u32) {
+  pub fn set_taku_cursol(&mut self, x: u32) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -1971,7 +2111,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[3008..].as_mut_ptr(),
+        self.0[3012..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -1987,8 +2127,8 @@ impl<'a> GameState {
       tsumobou: self.tsumobou(),
       riichibou: self.riichibou(),
       teban: self.teban(),
-      bahai: self.bahai().unpack(),
-      bahai_cursol: self.bahai_cursol(),
+      taku: self.taku().unpack(),
+      taku_cursol: self.taku_cursol(),
     }
   }
 }
@@ -2003,8 +2143,8 @@ pub struct GameStateT {
   pub tsumobou: u32,
   pub riichibou: u32,
   pub teban: u32,
-  pub bahai: BahaiT,
-  pub bahai_cursol: u32,
+  pub taku: TakuT,
+  pub taku_cursol: u32,
 }
 impl GameStateT {
   pub fn pack(&self) -> GameState {
@@ -2017,8 +2157,8 @@ impl GameStateT {
       self.tsumobou,
       self.riichibou,
       self.teban,
-      &self.bahai.pack(),
-      self.bahai_cursol,
+      &self.taku.pack(),
+      self.taku_cursol,
     )
   }
 }

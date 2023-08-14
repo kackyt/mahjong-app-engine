@@ -1,11 +1,11 @@
 use mahjong_core::{
-    fbs_utils::BahaiControl,
-    mahjong_generated::open_mahjong::{BahaiT, PaiT},
+    fbs_utils::TakuControl,
+    mahjong_generated::open_mahjong::{TakuT, PaiT},
 };
 
 #[test]
 fn bahai_shuffle_test() {
-    let bahai = BahaiT::create_shuffled();
+    let bahai = TakuT::create_shuffled();
 
     let target = PaiT {
         pai_num: 30,
