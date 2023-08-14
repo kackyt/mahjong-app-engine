@@ -1,8 +1,25 @@
-use std::ops::Range;
+use std::{ops::Range, fmt::Display};
 
 use crate::mahjong_generated::open_mahjong::{Taku, TakuT, FixedString, FixedStringT, Pai, PaiT};
 use rand::prelude::SliceRandom;
 
+// 牌の表示
+impl Display for PaiT {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let num = self.pai_num % 9 + 1;
+        if self.pai_num < 9 {
+            write!(f, "m{}", num)
+        } else if self.pai_num < 18 {
+            write!(f, "p{}", num)
+        } else if self.pai_num < 27 {
+            write!(f, "s{}", num)
+        } else {
+            write!(f, "z{}", num)
+        }
+    }
+}
+
+// 牌の並び替え
 impl PartialOrd for PaiT {
     fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
         match self.pai_num.partial_cmp(&other.pai_num) {
@@ -256,7 +273,7 @@ impl TakuControl for TakuT {
             }
             let mut nx:Vec<PaiT> = self.n1[rstart..rend].iter().cloned().collect();
 
-            nx.append(&mut v);
+            v.append(&mut nx);
         }
 
 
@@ -273,7 +290,7 @@ impl TakuControl for TakuT {
             }
             let mut nx:Vec<PaiT> = self.n2[rstart..rend].iter().cloned().collect();
 
-            nx.append(&mut v);
+            v.append(&mut nx);
         }
 
         if st.0 <= 2 && ed.0 >= 2 {
@@ -289,7 +306,7 @@ impl TakuControl for TakuT {
             }
             let mut nx:Vec<PaiT> = self.n3[rstart..rend].iter().cloned().collect();
 
-            nx.append(&mut v);
+            v.append(&mut nx);
         }
 
         if st.0 <= 3 && ed.0 >= 3 {
@@ -305,7 +322,7 @@ impl TakuControl for TakuT {
             }
             let mut nx:Vec<PaiT> = self.n4[rstart..rend].iter().cloned().collect();
 
-            nx.append(&mut v);
+            v.append(&mut nx);
         }
 
         if st.0 <= 4 && ed.0 >= 4 {
@@ -321,7 +338,7 @@ impl TakuControl for TakuT {
             }
             let mut nx:Vec<PaiT> = self.n5[rstart..rend].iter().cloned().collect();
 
-            nx.append(&mut v);
+            v.append(&mut nx);
         }
 
         Ok(v)

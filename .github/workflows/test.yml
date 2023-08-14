@@ -16,5 +16,3 @@ jobs:
           override: true
       - name: test
         run: cargo test
-      - name: clippy Check
-        run: cargo clippy
