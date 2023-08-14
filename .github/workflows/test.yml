@@ -1,4 +1,4 @@
-name: build backend test
+name: unit test
 on:
   pull_request: {}
   workflow_dispatch: {}

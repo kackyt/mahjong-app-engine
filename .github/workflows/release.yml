@@ -1,4 +1,4 @@
-name: Deploy to POC
+name: make release
 on:
   pull_request:
     types:
