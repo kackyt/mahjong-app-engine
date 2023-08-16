@@ -51,15 +51,19 @@ impl GameStateT {
         let player = &mut self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
 
-        if index != 14 {
-            tehai.remove(index);
+        if index != 13 {
+            let kawahai = tehai.remove(index);
             tehai.push(player.tsumohai.clone());
             tehai.sort_unstable();
 
             for (i, item) in tehai.into_iter().enumerate() {
                 player.tehai[i] = item;
             }
+            player.kawahai[player.kawahai_len as usize] = kawahai;
+        } else {
+            player.kawahai[player.kawahai_len as usize] = player.tsumohai.clone();
         }
+        player.kawahai_len += 1;
         player.tsumohai = Default::default();
 
         player.is_tsumo = false;
