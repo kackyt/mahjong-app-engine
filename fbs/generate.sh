@@ -1,2 +1,2 @@
 #!/bin/bash
-flatc --rust --gen-mutable --gen-object-api -o ..\mahjong_core\src .\mahjong.fbs
+flatc --rust --gen-mutable --gen-object-api -o ../mahjong_core/src ./mahjong.fbs
