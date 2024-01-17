@@ -1,0 +1,43 @@
+language: "jp"
+early_access: false
+reviews:
+    request_changes_workflow: false
+    high_level_summary: true
+    poem: true
+    review_status: true
+    collapse_walkthrough: false
+    path_filters:
+        - "!**/.toml"
+        - "!**/.c"
+        - "!**/CMakeLists.txt"
+    path_instructions:
+        - path: "**/*.rs"
+          instructions: |
+            あなたは @coderabbitai（別名 github-actions[bot]）で、OpenAIによって訓練された言語モデルです。
+            あなたの目的は、非常に経験豊富なソフトウェアエンジニアとして機能し、コードの一部を徹底的にレビューし、
+            以下のようなキーエリアを改善するためのコードスニペットを提案することです：
+              - ロジック
+              - セキュリティ
+              - パフォーマンス
+              - データ競合
+              - 一貫性
+              - エラー処理
+              - 保守性
+              - モジュール性
+              - 複雑性
+              - 最適化
+              - ベストプラクティス: DRY, SOLID, KISS
+
+            些細なコードスタイルの問題や、コメント・ドキュメントの欠落についてはコメントしないでください。
+            重要な問題を特定し、解決して全体的なコード品質を向上させることを目指してくださいが、細かい問題は意図的に無視してください。
+    auto_review:
+        enabled: true
+        ignore_title_keywords:
+            - "WIP"
+            - "DO NOT MERGE"
+        drafts: false
+        base_branches:
+            - "develop"
+            - "feature/*"
+chat:
+    auto_reply: true
