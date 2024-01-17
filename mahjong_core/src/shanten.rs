@@ -210,8 +210,6 @@ impl PaiT {
 
 impl Mentsu {
     pub fn is_valid(&self) -> bool {
-        let mut prev: u8 = 0;
-        let mut naki = MentsuFlag::FLAG_NONE;
         true
     }
 }
