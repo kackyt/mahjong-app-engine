@@ -1,0 +1,93 @@
+namespace OpenMahjong;
+
+struct FixedString {
+    n1: [ubyte: 32];
+    n2: [ubyte: 32];
+    n3: [ubyte: 32];
+    n4: [ubyte: 32];
+    n5: [ubyte: 32];
+    n6: [ubyte: 32];
+    n7: [ubyte: 32];
+    n8: [ubyte: 32];
+}
+
+enum ActionType : uint {
+    ACTION_SYNC,
+    ACTION_SUTEHAI,
+    ACTION_CHII,
+    ACTION_PON,
+    ACTION_KAN,
+    ACTION_TSUMO,
+    ACTION_NAGASHI,
+}
+
+enum MentsuType : ubyte {
+    TYPE_SHUNTSU,
+    TYPE_KOUTSU,
+    TYPE_MINKAN,
+    TYPE_ANKAN,
+    TYPE_ATAMA
+}
+
+struct Pai {
+    pai_num: ubyte;
+    id: ubyte;
+    is_tsumogiri: bool = false;
+    is_riichi: bool = false;
+    is_nakare: bool = false;
+}
+
+struct Taku {
+    n1: [Pai: 32];
+    n2: [Pai: 32];
+    n3: [Pai: 32];
+    n4: [Pai: 32];
+    n5: [Pai: 8];
+    length: uint;
+}
+
+enum MentsuFlag : ubyte {
+    FLAG_NONE,
+    FLAG_KAMICHA,
+    FLAG_TOIMEN,
+    FLAG_SIMOCHA,
+}
+
+struct MentsuPai {
+    pai_num: ubyte;
+    id: ubyte;
+    flag: MentsuFlag = FLAG_NONE;
+}
+
+struct Mentsu {
+    pai_list: [MentsuPai: 4];
+    pai_len: uint;
+}
+
+struct Player {
+    name: FixedString;
+    mentsu: [Mentsu: 4];
+    mentsu_len: uint;
+    tehai: [Pai: 13];
+    tehai_len: uint;
+    kawahai: [Pai: 20];
+    kawahai_len: uint;
+    tsumohai: Pai;
+    is_tsumo: bool;
+    is_riichi: bool;
+    is_ippatsu: bool;
+    score: int;
+}
+
+struct GameState {
+    title: FixedString;
+    players: [Player: 4];
+    player_len: uint;
+    bakaze: uint = 0;
+    zikaze: uint = 0;
+    tsumobou: uint = 0;
+    riichibou: uint = 0;
+    teban: uint = 0;
+    taku: Taku;
+    taku_cursol: uint;
+}

@@ -1,5 +1,5 @@
 [package]
-name = "dll"
+name = "ai_dll"
 version = "0.1.0"
 edition = "2021"
 
@@ -11,4 +11,4 @@ proc-macro = true
 
 [dependencies]
 libc = "0.2.140"
-proc-macros = { path = "../proc-macros" }
+proc_macros = { path = "../proc_macros" }

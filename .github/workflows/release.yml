@@ -4,13 +4,13 @@ on:
     types:
      - closed
     branches:
-     - master
+     - main
   push:
     tags:
       - '*'
   workflow_dispatch: {}
 env:
-  cache-unique-key: themis
+  cache-unique-key: mahjong-rust-ai
 permissions:
   id-token: write
   contents: read
