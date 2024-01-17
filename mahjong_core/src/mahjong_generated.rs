@@ -19,6 +19,111 @@ pub mod open_mahjong {
   use self::flatbuffers::{EndianScalar, Follow};
 
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MIN_ACTION_TYPE: u32 = 0;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+pub const ENUM_MAX_ACTION_TYPE: u32 = 6;
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
+#[allow(non_camel_case_types)]
+pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 7] = [
+  ActionType::ACTION_SYNC,
+  ActionType::ACTION_SUTEHAI,
+  ActionType::ACTION_CHII,
+  ActionType::ACTION_PON,
+  ActionType::ACTION_KAN,
+  ActionType::ACTION_TSUMO,
+  ActionType::ACTION_NAGASHI,
+];
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
+#[repr(transparent)]
+pub struct ActionType(pub u32);
+#[allow(non_upper_case_globals)]
+impl ActionType {
+  pub const ACTION_SYNC: Self = Self(0);
+  pub const ACTION_SUTEHAI: Self = Self(1);
+  pub const ACTION_CHII: Self = Self(2);
+  pub const ACTION_PON: Self = Self(3);
+  pub const ACTION_KAN: Self = Self(4);
+  pub const ACTION_TSUMO: Self = Self(5);
+  pub const ACTION_NAGASHI: Self = Self(6);
+
+  pub const ENUM_MIN: u32 = 0;
+  pub const ENUM_MAX: u32 = 6;
+  pub const ENUM_VALUES: &'static [Self] = &[
+    Self::ACTION_SYNC,
+    Self::ACTION_SUTEHAI,
+    Self::ACTION_CHII,
+    Self::ACTION_PON,
+    Self::ACTION_KAN,
+    Self::ACTION_TSUMO,
+    Self::ACTION_NAGASHI,
+  ];
+  /// Returns the variant's name or "" if unknown.
+  pub fn variant_name(self) -> Option<&'static str> {
+    match self {
+      Self::ACTION_SYNC => Some("ACTION_SYNC"),
+      Self::ACTION_SUTEHAI => Some("ACTION_SUTEHAI"),
+      Self::ACTION_CHII => Some("ACTION_CHII"),
+      Self::ACTION_PON => Some("ACTION_PON"),
+      Self::ACTION_KAN => Some("ACTION_KAN"),
+      Self::ACTION_TSUMO => Some("ACTION_TSUMO"),
+      Self::ACTION_NAGASHI => Some("ACTION_NAGASHI"),
+      _ => None,
+    }
+  }
+}
+impl core::fmt::Debug for ActionType {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    if let Some(name) = self.variant_name() {
+      f.write_str(name)
+    } else {
+      f.write_fmt(format_args!("<UNKNOWN {:?}>", self.0))
+    }
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for ActionType {
+  type Inner = Self;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    let b = flatbuffers::read_scalar_at::<u32>(buf, loc);
+    Self(b)
+  }
+}
+
+impl flatbuffers::Push for ActionType {
+    type Output = ActionType;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        flatbuffers::emplace_scalar::<u32>(dst, self.0);
+    }
+}
+
+impl flatbuffers::EndianScalar for ActionType {
+  type Scalar = u32;
+  #[inline]
+  fn to_little_endian(self) -> u32 {
+    self.0.to_le()
+  }
+  #[inline]
+  #[allow(clippy::wrong_self_convention)]
+  fn from_little_endian(v: u32) -> Self {
+    let b = u32::from_le(v);
+    Self(b)
+  }
+}
+
+impl<'a> flatbuffers::Verifiable for ActionType {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    u32::run_verifier(v, pos)
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for ActionType {}
+#[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_MENTSU_TYPE: u8 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MAX_MENTSU_TYPE: u8 = 4;
@@ -208,187 +313,470 @@ impl<'a> flatbuffers::Verifiable for MentsuFlag {
 }
 
 impl flatbuffers::SimpleToVerifyInSlice for MentsuFlag {}
-pub enum PaiOffset {}
-#[derive(Copy, Clone, PartialEq)]
-
-pub struct Pai<'a> {
-  pub _tab: flatbuffers::Table<'a>,
+// struct FixedString, aligned to 1
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct FixedString(pub [u8; 256]);
+impl Default for FixedString { 
+  fn default() -> Self { 
+    Self([0; 256])
+  }
+}
+impl core::fmt::Debug for FixedString {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("FixedString")
+      .field("n1", &self.n1())
+      .field("n2", &self.n2())
+      .field("n3", &self.n3())
+      .field("n4", &self.n4())
+      .field("n5", &self.n5())
+      .field("n6", &self.n6())
+      .field("n7", &self.n7())
+      .field("n8", &self.n8())
+      .finish()
+  }
 }
 
-impl<'a> flatbuffers::Follow<'a> for Pai<'a> {
-  type Inner = Pai<'a>;
+impl flatbuffers::SimpleToVerifyInSlice for FixedString {}
+impl<'a> flatbuffers::Follow<'a> for FixedString {
+  type Inner = &'a FixedString;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table::new(buf, loc) }
+    <&'a FixedString>::follow(buf, loc)
   }
 }
-
-impl<'a> Pai<'a> {
-  pub const VT_PAI_NUM: flatbuffers::VOffsetT = 4;
-  pub const VT_ID: flatbuffers::VOffsetT = 6;
-  pub const VT_IS_TSUMOGIRI: flatbuffers::VOffsetT = 8;
-  pub const VT_IS_RIICHI: flatbuffers::VOffsetT = 10;
-  pub const VT_IS_NAKARE: flatbuffers::VOffsetT = 12;
-
+impl<'a> flatbuffers::Follow<'a> for &'a FixedString {
+  type Inner = &'a FixedString;
   #[inline]
-  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Pai { _tab: table }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<FixedString>(buf, loc)
   }
-  #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args PaiArgs
-  ) -> flatbuffers::WIPOffset<Pai<'bldr>> {
-    let mut builder = PaiBuilder::new(_fbb);
-    builder.add_is_nakare(args.is_nakare);
-    builder.add_is_riichi(args.is_riichi);
-    builder.add_is_tsumogiri(args.is_tsumogiri);
-    builder.add_id(args.id);
-    builder.add_pai_num(args.pai_num);
-    builder.finish()
-  }
-
-  pub fn unpack(&self) -> PaiT {
-    let pai_num = self.pai_num();
-    let id = self.id();
-    let is_tsumogiri = self.is_tsumogiri();
-    let is_riichi = self.is_riichi();
-    let is_nakare = self.is_nakare();
-    PaiT {
-      pai_num,
-      id,
-      is_tsumogiri,
-      is_riichi,
-      is_nakare,
+}
+impl<'b> flatbuffers::Push for FixedString {
+    type Output = FixedString;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const FixedString as *const u8, Self::size());
+        dst.copy_from_slice(src);
     }
-  }
-
-  #[inline]
-  pub fn pai_num(&self) -> u8 {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<u8>(Pai::VT_PAI_NUM, Some(0)).unwrap()}
-  }
-  #[inline]
-  pub fn id(&self) -> u8 {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<u8>(Pai::VT_ID, Some(0)).unwrap()}
-  }
-  #[inline]
-  pub fn is_tsumogiri(&self) -> bool {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<bool>(Pai::VT_IS_TSUMOGIRI, Some(false)).unwrap()}
-  }
-  #[inline]
-  pub fn is_riichi(&self) -> bool {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<bool>(Pai::VT_IS_RIICHI, Some(false)).unwrap()}
-  }
-  #[inline]
-  pub fn is_nakare(&self) -> bool {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<bool>(Pai::VT_IS_NAKARE, Some(false)).unwrap()}
-  }
 }
 
-impl flatbuffers::Verifiable for Pai<'_> {
+impl<'a> flatbuffers::Verifiable for FixedString {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
-    v.visit_table(pos)?
-     .visit_field::<u8>("pai_num", Self::VT_PAI_NUM, false)?
-     .visit_field::<u8>("id", Self::VT_ID, false)?
-     .visit_field::<bool>("is_tsumogiri", Self::VT_IS_TSUMOGIRI, false)?
-     .visit_field::<bool>("is_riichi", Self::VT_IS_RIICHI, false)?
-     .visit_field::<bool>("is_nakare", Self::VT_IS_NAKARE, false)?
-     .finish();
-    Ok(())
+    v.in_buffer::<Self>(pos)
   }
 }
-pub struct PaiArgs {
-    pub pai_num: u8,
-    pub id: u8,
-    pub is_tsumogiri: bool,
-    pub is_riichi: bool,
-    pub is_nakare: bool,
-}
-impl<'a> Default for PaiArgs {
-  #[inline]
-  fn default() -> Self {
-    PaiArgs {
-      pai_num: 0,
-      id: 0,
-      is_tsumogiri: false,
-      is_riichi: false,
-      is_nakare: false,
+
+impl<'a> FixedString {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    n1: &[u8; 32],
+    n2: &[u8; 32],
+    n3: &[u8; 32],
+    n4: &[u8; 32],
+    n5: &[u8; 32],
+    n6: &[u8; 32],
+    n7: &[u8; 32],
+    n8: &[u8; 32],
+  ) -> Self {
+    let mut s = Self([0; 256]);
+    s.set_n1(n1);
+    s.set_n2(n2);
+    s.set_n3(n3);
+    s.set_n4(n4);
+    s.set_n5(n5);
+    s.set_n6(n6);
+    s.set_n7(n7);
+    s.set_n8(n8);
+    s
+  }
+
+  pub fn n1(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 0) }
+  }
+
+  pub fn set_n1(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 0, items) };
+  }
+
+  pub fn n2(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 32) }
+  }
+
+  pub fn set_n2(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 32, items) };
+  }
+
+  pub fn n3(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 64) }
+  }
+
+  pub fn set_n3(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 64, items) };
+  }
+
+  pub fn n4(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 96) }
+  }
+
+  pub fn set_n4(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 96, items) };
+  }
+
+  pub fn n5(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 128) }
+  }
+
+  pub fn set_n5(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 128, items) };
+  }
+
+  pub fn n6(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 160) }
+  }
+
+  pub fn set_n6(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 160, items) };
+  }
+
+  pub fn n7(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 192) }
+  }
+
+  pub fn set_n7(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 192, items) };
+  }
+
+  pub fn n8(&'a self) -> flatbuffers::Array<'a, u8, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 224) }
+  }
+
+  pub fn set_n8(&mut self, items: &[u8; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 224, items) };
+  }
+
+  pub fn unpack(&self) -> FixedStringT {
+    FixedStringT {
+      n1: self.n1().into(),
+      n2: self.n2().into(),
+      n3: self.n3().into(),
+      n4: self.n4().into(),
+      n5: self.n5().into(),
+      n6: self.n6().into(),
+      n7: self.n7().into(),
+      n8: self.n8().into(),
     }
   }
 }
 
-pub struct PaiBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct FixedStringT {
+  pub n1: [u8; 32],
+  pub n2: [u8; 32],
+  pub n3: [u8; 32],
+  pub n4: [u8; 32],
+  pub n5: [u8; 32],
+  pub n6: [u8; 32],
+  pub n7: [u8; 32],
+  pub n8: [u8; 32],
 }
-impl<'a: 'b, 'b> PaiBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_pai_num(&mut self, pai_num: u8) {
-    self.fbb_.push_slot::<u8>(Pai::VT_PAI_NUM, pai_num, 0);
-  }
-  #[inline]
-  pub fn add_id(&mut self, id: u8) {
-    self.fbb_.push_slot::<u8>(Pai::VT_ID, id, 0);
-  }
-  #[inline]
-  pub fn add_is_tsumogiri(&mut self, is_tsumogiri: bool) {
-    self.fbb_.push_slot::<bool>(Pai::VT_IS_TSUMOGIRI, is_tsumogiri, false);
-  }
-  #[inline]
-  pub fn add_is_riichi(&mut self, is_riichi: bool) {
-    self.fbb_.push_slot::<bool>(Pai::VT_IS_RIICHI, is_riichi, false);
-  }
-  #[inline]
-  pub fn add_is_nakare(&mut self, is_nakare: bool) {
-    self.fbb_.push_slot::<bool>(Pai::VT_IS_NAKARE, is_nakare, false);
-  }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PaiBuilder<'a, 'b> {
-    let start = _fbb.start_table();
-    PaiBuilder {
-      fbb_: _fbb,
-      start_: start,
-    }
-  }
-  #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Pai<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    flatbuffers::WIPOffset::new(o.value())
+impl FixedStringT {
+  pub fn pack(&self) -> FixedString {
+    FixedString::new(
+      &self.n1,
+      &self.n2,
+      &self.n3,
+      &self.n4,
+      &self.n5,
+      &self.n6,
+      &self.n7,
+      &self.n8,
+    )
   }
 }
 
-impl core::fmt::Debug for Pai<'_> {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Pai");
-      ds.field("pai_num", &self.pai_num());
-      ds.field("id", &self.id());
-      ds.field("is_tsumogiri", &self.is_tsumogiri());
-      ds.field("is_riichi", &self.is_riichi());
-      ds.field("is_nakare", &self.is_nakare());
-      ds.finish()
+// struct Pai, aligned to 1
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct Pai(pub [u8; 5]);
+impl Default for Pai { 
+  fn default() -> Self { 
+    Self([0; 5])
   }
 }
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+impl core::fmt::Debug for Pai {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("Pai")
+      .field("pai_num", &self.pai_num())
+      .field("id", &self.id())
+      .field("is_tsumogiri", &self.is_tsumogiri())
+      .field("is_riichi", &self.is_riichi())
+      .field("is_nakare", &self.is_nakare())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for Pai {}
+impl<'a> flatbuffers::Follow<'a> for Pai {
+  type Inner = &'a Pai;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a Pai>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a Pai {
+  type Inner = &'a Pai;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<Pai>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for Pai {
+    type Output = Pai;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const Pai as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for Pai {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+
+impl<'a> Pai {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    pai_num: u8,
+    id: u8,
+    is_tsumogiri: bool,
+    is_riichi: bool,
+    is_nakare: bool,
+  ) -> Self {
+    let mut s = Self([0; 5]);
+    s.set_pai_num(pai_num);
+    s.set_id(id);
+    s.set_is_tsumogiri(is_tsumogiri);
+    s.set_is_riichi(is_riichi);
+    s.set_is_nakare(is_nakare);
+    s
+  }
+
+  pub fn pai_num(&self) -> u8 {
+    let mut mem = core::mem::MaybeUninit::<<u8 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_pai_num(&mut self, x: u8) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn id(&self) -> u8 {
+    let mut mem = core::mem::MaybeUninit::<<u8 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[1..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_id(&mut self, x: u8) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[1..].as_mut_ptr(),
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn is_tsumogiri(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_is_tsumogiri(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn is_riichi(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[3..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_is_riichi(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[3..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn is_nakare(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[4..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_is_nakare(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[4..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn unpack(&self) -> PaiT {
+    PaiT {
+      pai_num: self.pai_num(),
+      id: self.id(),
+      is_tsumogiri: self.is_tsumogiri(),
+      is_riichi: self.is_riichi(),
+      is_nakare: self.is_nakare(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct PaiT {
   pub pai_num: u8,
   pub id: u8,
@@ -396,644 +784,1384 @@ pub struct PaiT {
   pub is_riichi: bool,
   pub is_nakare: bool,
 }
-impl Default for PaiT {
-  fn default() -> Self {
-    Self {
-      pai_num: 0,
-      id: 0,
-      is_tsumogiri: false,
-      is_riichi: false,
-      is_nakare: false,
-    }
-  }
-}
 impl PaiT {
-  pub fn pack<'b>(
-    &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
-  ) -> flatbuffers::WIPOffset<Pai<'b>> {
-    let pai_num = self.pai_num;
-    let id = self.id;
-    let is_tsumogiri = self.is_tsumogiri;
-    let is_riichi = self.is_riichi;
-    let is_nakare = self.is_nakare;
-    Pai::create(_fbb, &PaiArgs{
-      pai_num,
-      id,
-      is_tsumogiri,
-      is_riichi,
-      is_nakare,
-    })
+  pub fn pack(&self) -> Pai {
+    Pai::new(
+      self.pai_num,
+      self.id,
+      self.is_tsumogiri,
+      self.is_riichi,
+      self.is_nakare,
+    )
   }
 }
-pub enum MentsuPaiOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
-pub struct MentsuPai<'a> {
-  pub _tab: flatbuffers::Table<'a>,
+// struct Taku, aligned to 4
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct Taku(pub [u8; 684]);
+impl Default for Taku { 
+  fn default() -> Self { 
+    Self([0; 684])
+  }
+}
+impl core::fmt::Debug for Taku {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("Taku")
+      .field("n1", &self.n1())
+      .field("n2", &self.n2())
+      .field("n3", &self.n3())
+      .field("n4", &self.n4())
+      .field("n5", &self.n5())
+      .field("length", &self.length())
+      .finish()
+  }
 }
 
-impl<'a> flatbuffers::Follow<'a> for MentsuPai<'a> {
-  type Inner = MentsuPai<'a>;
+impl flatbuffers::SimpleToVerifyInSlice for Taku {}
+impl<'a> flatbuffers::Follow<'a> for Taku {
+  type Inner = &'a Taku;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table::new(buf, loc) }
+    <&'a Taku>::follow(buf, loc)
   }
 }
-
-impl<'a> MentsuPai<'a> {
-  pub const VT_PAI_NUM: flatbuffers::VOffsetT = 4;
-  pub const VT_ID: flatbuffers::VOffsetT = 6;
-  pub const VT_FLAG: flatbuffers::VOffsetT = 8;
-
+impl<'a> flatbuffers::Follow<'a> for &'a Taku {
+  type Inner = &'a Taku;
   #[inline]
-  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    MentsuPai { _tab: table }
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<Taku>(buf, loc)
   }
-  #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args MentsuPaiArgs
-  ) -> flatbuffers::WIPOffset<MentsuPai<'bldr>> {
-    let mut builder = MentsuPaiBuilder::new(_fbb);
-    builder.add_flag(args.flag);
-    builder.add_id(args.id);
-    builder.add_pai_num(args.pai_num);
-    builder.finish()
-  }
-
-  pub fn unpack(&self) -> MentsuPaiT {
-    let pai_num = self.pai_num();
-    let id = self.id();
-    let flag = self.flag();
-    MentsuPaiT {
-      pai_num,
-      id,
-      flag,
+}
+impl<'b> flatbuffers::Push for Taku {
+    type Output = Taku;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const Taku as *const u8, Self::size());
+        dst.copy_from_slice(src);
     }
-  }
-
-  #[inline]
-  pub fn pai_num(&self) -> u8 {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<u8>(MentsuPai::VT_PAI_NUM, Some(0)).unwrap()}
-  }
-  #[inline]
-  pub fn id(&self) -> u8 {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<u8>(MentsuPai::VT_ID, Some(0)).unwrap()}
-  }
-  #[inline]
-  pub fn flag(&self) -> MentsuFlag {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<MentsuFlag>(MentsuPai::VT_FLAG, Some(MentsuFlag::FLAG_NONE)).unwrap()}
-  }
 }
 
-impl flatbuffers::Verifiable for MentsuPai<'_> {
+impl<'a> flatbuffers::Verifiable for Taku {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
-    v.visit_table(pos)?
-     .visit_field::<u8>("pai_num", Self::VT_PAI_NUM, false)?
-     .visit_field::<u8>("id", Self::VT_ID, false)?
-     .visit_field::<MentsuFlag>("flag", Self::VT_FLAG, false)?
-     .finish();
-    Ok(())
+    v.in_buffer::<Self>(pos)
   }
 }
-pub struct MentsuPaiArgs {
-    pub pai_num: u8,
-    pub id: u8,
-    pub flag: MentsuFlag,
-}
-impl<'a> Default for MentsuPaiArgs {
-  #[inline]
-  fn default() -> Self {
-    MentsuPaiArgs {
-      pai_num: 0,
-      id: 0,
-      flag: MentsuFlag::FLAG_NONE,
+
+impl<'a> Taku {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    n1: &[Pai; 32],
+    n2: &[Pai; 32],
+    n3: &[Pai; 32],
+    n4: &[Pai; 32],
+    n5: &[Pai; 8],
+    length: u32,
+  ) -> Self {
+    let mut s = Self([0; 684]);
+    s.set_n1(n1);
+    s.set_n2(n2);
+    s.set_n3(n3);
+    s.set_n4(n4);
+    s.set_n5(n5);
+    s.set_length(length);
+    s
+  }
+
+  pub fn n1(&'a self) -> flatbuffers::Array<'a, Pai, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 0) }
+  }
+
+  pub fn set_n1(&mut self, x: &[Pai; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(0),
+        160,
+      );
+    }
+  }
+
+  pub fn n2(&'a self) -> flatbuffers::Array<'a, Pai, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 160) }
+  }
+
+  pub fn set_n2(&mut self, x: &[Pai; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(160),
+        160,
+      );
+    }
+  }
+
+  pub fn n3(&'a self) -> flatbuffers::Array<'a, Pai, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 320) }
+  }
+
+  pub fn set_n3(&mut self, x: &[Pai; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(320),
+        160,
+      );
+    }
+  }
+
+  pub fn n4(&'a self) -> flatbuffers::Array<'a, Pai, 32> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 480) }
+  }
+
+  pub fn set_n4(&mut self, x: &[Pai; 32]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(480),
+        160,
+      );
+    }
+  }
+
+  pub fn n5(&'a self) -> flatbuffers::Array<'a, Pai, 8> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 640) }
+  }
+
+  pub fn set_n5(&mut self, x: &[Pai; 8]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(640),
+        40,
+      );
+    }
+  }
+
+  pub fn length(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[680..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_length(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[680..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn unpack(&self) -> TakuT {
+    TakuT {
+      n1: { let n1 = self.n1(); flatbuffers::array_init(|i| n1.get(i).unpack()) },
+      n2: { let n2 = self.n2(); flatbuffers::array_init(|i| n2.get(i).unpack()) },
+      n3: { let n3 = self.n3(); flatbuffers::array_init(|i| n3.get(i).unpack()) },
+      n4: { let n4 = self.n4(); flatbuffers::array_init(|i| n4.get(i).unpack()) },
+      n5: { let n5 = self.n5(); flatbuffers::array_init(|i| n5.get(i).unpack()) },
+      length: self.length(),
     }
   }
 }
 
-pub struct MentsuPaiBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct TakuT {
+  pub n1: [PaiT; 32],
+  pub n2: [PaiT; 32],
+  pub n3: [PaiT; 32],
+  pub n4: [PaiT; 32],
+  pub n5: [PaiT; 8],
+  pub length: u32,
 }
-impl<'a: 'b, 'b> MentsuPaiBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_pai_num(&mut self, pai_num: u8) {
-    self.fbb_.push_slot::<u8>(MentsuPai::VT_PAI_NUM, pai_num, 0);
-  }
-  #[inline]
-  pub fn add_id(&mut self, id: u8) {
-    self.fbb_.push_slot::<u8>(MentsuPai::VT_ID, id, 0);
-  }
-  #[inline]
-  pub fn add_flag(&mut self, flag: MentsuFlag) {
-    self.fbb_.push_slot::<MentsuFlag>(MentsuPai::VT_FLAG, flag, MentsuFlag::FLAG_NONE);
-  }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MentsuPaiBuilder<'a, 'b> {
-    let start = _fbb.start_table();
-    MentsuPaiBuilder {
-      fbb_: _fbb,
-      start_: start,
-    }
-  }
-  #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<MentsuPai<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    flatbuffers::WIPOffset::new(o.value())
+impl TakuT {
+  pub fn pack(&self) -> Taku {
+    Taku::new(
+      &flatbuffers::array_init(|i| self.n1[i].pack()),
+      &flatbuffers::array_init(|i| self.n2[i].pack()),
+      &flatbuffers::array_init(|i| self.n3[i].pack()),
+      &flatbuffers::array_init(|i| self.n4[i].pack()),
+      &flatbuffers::array_init(|i| self.n5[i].pack()),
+      self.length,
+    )
   }
 }
 
-impl core::fmt::Debug for MentsuPai<'_> {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("MentsuPai");
-      ds.field("pai_num", &self.pai_num());
-      ds.field("id", &self.id());
-      ds.field("flag", &self.flag());
-      ds.finish()
+// struct MentsuPai, aligned to 1
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct MentsuPai(pub [u8; 3]);
+impl Default for MentsuPai { 
+  fn default() -> Self { 
+    Self([0; 3])
   }
 }
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+impl core::fmt::Debug for MentsuPai {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("MentsuPai")
+      .field("pai_num", &self.pai_num())
+      .field("id", &self.id())
+      .field("flag", &self.flag())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for MentsuPai {}
+impl<'a> flatbuffers::Follow<'a> for MentsuPai {
+  type Inner = &'a MentsuPai;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a MentsuPai>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a MentsuPai {
+  type Inner = &'a MentsuPai;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<MentsuPai>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for MentsuPai {
+    type Output = MentsuPai;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const MentsuPai as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for MentsuPai {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+
+impl<'a> MentsuPai {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    pai_num: u8,
+    id: u8,
+    flag: MentsuFlag,
+  ) -> Self {
+    let mut s = Self([0; 3]);
+    s.set_pai_num(pai_num);
+    s.set_id(id);
+    s.set_flag(flag);
+    s
+  }
+
+  pub fn pai_num(&self) -> u8 {
+    let mut mem = core::mem::MaybeUninit::<<u8 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[0..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_pai_num(&mut self, x: u8) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[0..].as_mut_ptr(),
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn id(&self) -> u8 {
+    let mut mem = core::mem::MaybeUninit::<<u8 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[1..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_id(&mut self, x: u8) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[1..].as_mut_ptr(),
+        core::mem::size_of::<<u8 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn flag(&self) -> MentsuFlag {
+    let mut mem = core::mem::MaybeUninit::<<MentsuFlag as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<MentsuFlag as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_flag(&mut self, x: MentsuFlag) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2..].as_mut_ptr(),
+        core::mem::size_of::<<MentsuFlag as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn unpack(&self) -> MentsuPaiT {
+    MentsuPaiT {
+      pai_num: self.pai_num(),
+      id: self.id(),
+      flag: self.flag(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct MentsuPaiT {
   pub pai_num: u8,
   pub id: u8,
   pub flag: MentsuFlag,
 }
-impl Default for MentsuPaiT {
-  fn default() -> Self {
-    Self {
-      pai_num: 0,
-      id: 0,
-      flag: MentsuFlag::FLAG_NONE,
-    }
-  }
-}
 impl MentsuPaiT {
-  pub fn pack<'b>(
-    &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
-  ) -> flatbuffers::WIPOffset<MentsuPai<'b>> {
-    let pai_num = self.pai_num;
-    let id = self.id;
-    let flag = self.flag;
-    MentsuPai::create(_fbb, &MentsuPaiArgs{
-      pai_num,
-      id,
-      flag,
-    })
+  pub fn pack(&self) -> MentsuPai {
+    MentsuPai::new(
+      self.pai_num,
+      self.id,
+      self.flag,
+    )
   }
 }
-pub enum MentsuOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
-pub struct Mentsu<'a> {
-  pub _tab: flatbuffers::Table<'a>,
+// struct Mentsu, aligned to 4
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct Mentsu(pub [u8; 16]);
+impl Default for Mentsu { 
+  fn default() -> Self { 
+    Self([0; 16])
+  }
+}
+impl core::fmt::Debug for Mentsu {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("Mentsu")
+      .field("pai_list", &self.pai_list())
+      .field("pai_len", &self.pai_len())
+      .finish()
+  }
 }
 
-impl<'a> flatbuffers::Follow<'a> for Mentsu<'a> {
-  type Inner = Mentsu<'a>;
+impl flatbuffers::SimpleToVerifyInSlice for Mentsu {}
+impl<'a> flatbuffers::Follow<'a> for Mentsu {
+  type Inner = &'a Mentsu;
   #[inline]
   unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table::new(buf, loc) }
+    <&'a Mentsu>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a Mentsu {
+  type Inner = &'a Mentsu;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<Mentsu>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for Mentsu {
+    type Output = Mentsu;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const Mentsu as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for Mentsu {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
   }
 }
 
-impl<'a> Mentsu<'a> {
-  pub const VT_PAI_LIST: flatbuffers::VOffsetT = 4;
-
-  #[inline]
-  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Mentsu { _tab: table }
+impl<'a> Mentsu {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    pai_list: &[MentsuPai; 4],
+    pai_len: u32,
+  ) -> Self {
+    let mut s = Self([0; 16]);
+    s.set_pai_list(pai_list);
+    s.set_pai_len(pai_len);
+    s
   }
-  #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args MentsuArgs<'args>
-  ) -> flatbuffers::WIPOffset<Mentsu<'bldr>> {
-    let mut builder = MentsuBuilder::new(_fbb);
-    if let Some(x) = args.pai_list { builder.add_pai_list(x); }
-    builder.finish()
+
+  pub fn pai_list(&'a self) -> flatbuffers::Array<'a, MentsuPai, 4> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 0) }
+  }
+
+  pub fn set_pai_list(&mut self, x: &[MentsuPai; 4]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(0),
+        12,
+      );
+    }
+  }
+
+  pub fn pai_len(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[12..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_pai_len(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[12..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
   }
 
   pub fn unpack(&self) -> MentsuT {
-    let pai_list = self.pai_list().map(|x| {
-      x.iter().map(|t| t.unpack()).collect()
-    });
     MentsuT {
-      pai_list,
+      pai_list: { let pai_list = self.pai_list(); flatbuffers::array_init(|i| pai_list.get(i).unpack()) },
+      pai_len: self.pai_len(),
     }
-  }
-
-  #[inline]
-  pub fn pai_list(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<MentsuPai<'a>>>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<MentsuPai>>>>(Mentsu::VT_PAI_LIST, None)}
   }
 }
 
-impl flatbuffers::Verifiable for Mentsu<'_> {
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct MentsuT {
+  pub pai_list: [MentsuPaiT; 4],
+  pub pai_len: u32,
+}
+impl MentsuT {
+  pub fn pack(&self) -> Mentsu {
+    Mentsu::new(
+      &flatbuffers::array_init(|i| self.pai_list[i].pack()),
+      self.pai_len,
+    )
+  }
+}
+
+// struct Player, aligned to 4
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct Player(pub [u8; 512]);
+impl Default for Player { 
+  fn default() -> Self { 
+    Self([0; 512])
+  }
+}
+impl core::fmt::Debug for Player {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("Player")
+      .field("name", &self.name())
+      .field("mentsu", &self.mentsu())
+      .field("mentsu_len", &self.mentsu_len())
+      .field("tehai", &self.tehai())
+      .field("tehai_len", &self.tehai_len())
+      .field("kawahai", &self.kawahai())
+      .field("kawahai_len", &self.kawahai_len())
+      .field("tsumohai", &self.tsumohai())
+      .field("is_tsumo", &self.is_tsumo())
+      .field("is_riichi", &self.is_riichi())
+      .field("is_ippatsu", &self.is_ippatsu())
+      .field("score", &self.score())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for Player {}
+impl<'a> flatbuffers::Follow<'a> for Player {
+  type Inner = &'a Player;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a Player>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a Player {
+  type Inner = &'a Player;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<Player>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for Player {
+    type Output = Player;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const Player as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for Player {
   #[inline]
   fn run_verifier(
     v: &mut flatbuffers::Verifier, pos: usize
   ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
     use self::flatbuffers::Verifiable;
-    v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<MentsuPai>>>>("pai_list", Self::VT_PAI_LIST, false)?
-     .finish();
-    Ok(())
-  }
-}
-pub struct MentsuArgs<'a> {
-    pub pai_list: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<MentsuPai<'a>>>>>,
-}
-impl<'a> Default for MentsuArgs<'a> {
-  #[inline]
-  fn default() -> Self {
-    MentsuArgs {
-      pai_list: None,
-    }
+    v.in_buffer::<Self>(pos)
   }
 }
 
-pub struct MentsuBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
-}
-impl<'a: 'b, 'b> MentsuBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_pai_list(&mut self, pai_list: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<MentsuPai<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Mentsu::VT_PAI_LIST, pai_list);
+impl<'a> Player {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    name: &FixedString,
+    mentsu: &[Mentsu; 4],
+    mentsu_len: u32,
+    tehai: &[Pai; 13],
+    tehai_len: u32,
+    kawahai: &[Pai; 20],
+    kawahai_len: u32,
+    tsumohai: &Pai,
+    is_tsumo: bool,
+    is_riichi: bool,
+    is_ippatsu: bool,
+    score: i32,
+  ) -> Self {
+    let mut s = Self([0; 512]);
+    s.set_name(name);
+    s.set_mentsu(mentsu);
+    s.set_mentsu_len(mentsu_len);
+    s.set_tehai(tehai);
+    s.set_tehai_len(tehai_len);
+    s.set_kawahai(kawahai);
+    s.set_kawahai_len(kawahai_len);
+    s.set_tsumohai(tsumohai);
+    s.set_is_tsumo(is_tsumo);
+    s.set_is_riichi(is_riichi);
+    s.set_is_ippatsu(is_ippatsu);
+    s.set_score(score);
+    s
   }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> MentsuBuilder<'a, 'b> {
-    let start = _fbb.start_table();
-    MentsuBuilder {
-      fbb_: _fbb,
-      start_: start,
-    }
-  }
-  #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Mentsu<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    flatbuffers::WIPOffset::new(o.value())
-  }
-}
 
-impl core::fmt::Debug for Mentsu<'_> {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Mentsu");
-      ds.field("pai_list", &self.pai_list());
-      ds.finish()
+  pub fn name(&self) -> &FixedString {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
+    unsafe { &*(self.0[0..].as_ptr() as *const FixedString) }
   }
-}
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
-pub struct MentsuT {
-  pub pai_list: Option<Vec<MentsuPaiT>>,
-}
-impl Default for MentsuT {
-  fn default() -> Self {
-    Self {
-      pai_list: None,
+
+  #[allow(clippy::identity_op)]
+  pub fn set_name(&mut self, x: &FixedString) {
+    self.0[0..0 + 256].copy_from_slice(&x.0)
+  }
+
+  pub fn mentsu(&'a self) -> flatbuffers::Array<'a, Mentsu, 4> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 256) }
+  }
+
+  pub fn set_mentsu(&mut self, x: &[Mentsu; 4]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(256),
+        64,
+      );
     }
   }
-}
-impl MentsuT {
-  pub fn pack<'b>(
-    &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
-  ) -> flatbuffers::WIPOffset<Mentsu<'b>> {
-    let pai_list = self.pai_list.as_ref().map(|x|{
-      let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
-    });
-    Mentsu::create(_fbb, &MentsuArgs{
-      pai_list,
+
+  pub fn mentsu_len(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[320..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
     })
   }
-}
-pub enum PlayerOffset {}
-#[derive(Copy, Clone, PartialEq)]
 
-pub struct Player<'a> {
-  pub _tab: flatbuffers::Table<'a>,
-}
-
-impl<'a> flatbuffers::Follow<'a> for Player<'a> {
-  type Inner = Player<'a>;
-  #[inline]
-  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
-    Self { _tab: flatbuffers::Table::new(buf, loc) }
+  pub fn set_mentsu_len(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[320..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
   }
-}
 
-impl<'a> Player<'a> {
-  pub const VT_NAME: flatbuffers::VOffsetT = 4;
-  pub const VT_MENTSU: flatbuffers::VOffsetT = 6;
-  pub const VT_TEHAI: flatbuffers::VOffsetT = 8;
-  pub const VT_KAWAHAI: flatbuffers::VOffsetT = 10;
-  pub const VT_TSUMOHAI: flatbuffers::VOffsetT = 12;
-  pub const VT_IS_RIICHI: flatbuffers::VOffsetT = 14;
-  pub const VT_IS_IPPATSU: flatbuffers::VOffsetT = 16;
-  pub const VT_SCORE: flatbuffers::VOffsetT = 18;
-
-  #[inline]
-  pub unsafe fn init_from_table(table: flatbuffers::Table<'a>) -> Self {
-    Player { _tab: table }
+  pub fn tehai(&'a self) -> flatbuffers::Array<'a, Pai, 13> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 324) }
   }
-  #[allow(unused_mut)]
-  pub fn create<'bldr: 'args, 'args: 'mut_bldr, 'mut_bldr>(
-    _fbb: &'mut_bldr mut flatbuffers::FlatBufferBuilder<'bldr>,
-    args: &'args PlayerArgs<'args>
-  ) -> flatbuffers::WIPOffset<Player<'bldr>> {
-    let mut builder = PlayerBuilder::new(_fbb);
-    builder.add_score(args.score);
-    if let Some(x) = args.tsumohai { builder.add_tsumohai(x); }
-    if let Some(x) = args.kawahai { builder.add_kawahai(x); }
-    if let Some(x) = args.tehai { builder.add_tehai(x); }
-    if let Some(x) = args.mentsu { builder.add_mentsu(x); }
-    if let Some(x) = args.name { builder.add_name(x); }
-    builder.add_is_ippatsu(args.is_ippatsu);
-    builder.add_is_riichi(args.is_riichi);
-    builder.finish()
+
+  pub fn set_tehai(&mut self, x: &[Pai; 13]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(324),
+        65,
+      );
+    }
+  }
+
+  pub fn tehai_len(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[392..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_tehai_len(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[392..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn kawahai(&'a self) -> flatbuffers::Array<'a, Pai, 20> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 396) }
+  }
+
+  pub fn set_kawahai(&mut self, x: &[Pai; 20]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(396),
+        100,
+      );
+    }
+  }
+
+  pub fn kawahai_len(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[496..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_kawahai_len(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[496..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn tsumohai(&self) -> &Pai {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
+    unsafe { &*(self.0[500..].as_ptr() as *const Pai) }
+  }
+
+  #[allow(clippy::identity_op)]
+  pub fn set_tsumohai(&mut self, x: &Pai) {
+    self.0[500..500 + 5].copy_from_slice(&x.0)
+  }
+
+  pub fn is_tsumo(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[505..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_is_tsumo(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[505..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn is_riichi(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[506..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_is_riichi(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[506..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn is_ippatsu(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[507..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_is_ippatsu(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[507..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn score(&self) -> i32 {
+    let mut mem = core::mem::MaybeUninit::<<i32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[508..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<i32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_score(&mut self, x: i32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[508..].as_mut_ptr(),
+        core::mem::size_of::<<i32 as EndianScalar>::Scalar>(),
+      );
+    }
   }
 
   pub fn unpack(&self) -> PlayerT {
-    let name = self.name().map(|x| {
-      x.to_string()
-    });
-    let mentsu = self.mentsu().map(|x| {
-      x.iter().map(|t| t.unpack()).collect()
-    });
-    let tehai = self.tehai().map(|x| {
-      x.iter().map(|t| t.unpack()).collect()
-    });
-    let kawahai = self.kawahai().map(|x| {
-      x.iter().map(|t| t.unpack()).collect()
-    });
-    let tsumohai = self.tsumohai().map(|x| {
-      Box::new(x.unpack())
-    });
-    let is_riichi = self.is_riichi();
-    let is_ippatsu = self.is_ippatsu();
-    let score = self.score();
     PlayerT {
-      name,
-      mentsu,
-      tehai,
-      kawahai,
-      tsumohai,
-      is_riichi,
-      is_ippatsu,
-      score,
-    }
-  }
-
-  #[inline]
-  pub fn name(&self) -> Option<&'a str> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<&str>>(Player::VT_NAME, None)}
-  }
-  #[inline]
-  pub fn mentsu(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Mentsu<'a>>>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Mentsu>>>>(Player::VT_MENTSU, None)}
-  }
-  #[inline]
-  pub fn tehai(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pai<'a>>>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pai>>>>(Player::VT_TEHAI, None)}
-  }
-  #[inline]
-  pub fn kawahai(&self) -> Option<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pai<'a>>>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pai>>>>(Player::VT_KAWAHAI, None)}
-  }
-  #[inline]
-  pub fn tsumohai(&self) -> Option<Pai<'a>> {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<flatbuffers::ForwardsUOffset<Pai>>(Player::VT_TSUMOHAI, None)}
-  }
-  #[inline]
-  pub fn is_riichi(&self) -> bool {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<bool>(Player::VT_IS_RIICHI, Some(false)).unwrap()}
-  }
-  #[inline]
-  pub fn is_ippatsu(&self) -> bool {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<bool>(Player::VT_IS_IPPATSU, Some(false)).unwrap()}
-  }
-  #[inline]
-  pub fn score(&self) -> i32 {
-    // Safety:
-    // Created from valid Table for this object
-    // which contains a valid value in this slot
-    unsafe { self._tab.get::<i32>(Player::VT_SCORE, Some(0)).unwrap()}
-  }
-}
-
-impl flatbuffers::Verifiable for Player<'_> {
-  #[inline]
-  fn run_verifier(
-    v: &mut flatbuffers::Verifier, pos: usize
-  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
-    use self::flatbuffers::Verifiable;
-    v.visit_table(pos)?
-     .visit_field::<flatbuffers::ForwardsUOffset<&str>>("name", Self::VT_NAME, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Mentsu>>>>("mentsu", Self::VT_MENTSU, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Pai>>>>("tehai", Self::VT_TEHAI, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<flatbuffers::Vector<'_, flatbuffers::ForwardsUOffset<Pai>>>>("kawahai", Self::VT_KAWAHAI, false)?
-     .visit_field::<flatbuffers::ForwardsUOffset<Pai>>("tsumohai", Self::VT_TSUMOHAI, false)?
-     .visit_field::<bool>("is_riichi", Self::VT_IS_RIICHI, false)?
-     .visit_field::<bool>("is_ippatsu", Self::VT_IS_IPPATSU, false)?
-     .visit_field::<i32>("score", Self::VT_SCORE, false)?
-     .finish();
-    Ok(())
-  }
-}
-pub struct PlayerArgs<'a> {
-    pub name: Option<flatbuffers::WIPOffset<&'a str>>,
-    pub mentsu: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Mentsu<'a>>>>>,
-    pub tehai: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pai<'a>>>>>,
-    pub kawahai: Option<flatbuffers::WIPOffset<flatbuffers::Vector<'a, flatbuffers::ForwardsUOffset<Pai<'a>>>>>,
-    pub tsumohai: Option<flatbuffers::WIPOffset<Pai<'a>>>,
-    pub is_riichi: bool,
-    pub is_ippatsu: bool,
-    pub score: i32,
-}
-impl<'a> Default for PlayerArgs<'a> {
-  #[inline]
-  fn default() -> Self {
-    PlayerArgs {
-      name: None,
-      mentsu: None,
-      tehai: None,
-      kawahai: None,
-      tsumohai: None,
-      is_riichi: false,
-      is_ippatsu: false,
-      score: 0,
+      name: self.name().unpack(),
+      mentsu: { let mentsu = self.mentsu(); flatbuffers::array_init(|i| mentsu.get(i).unpack()) },
+      mentsu_len: self.mentsu_len(),
+      tehai: { let tehai = self.tehai(); flatbuffers::array_init(|i| tehai.get(i).unpack()) },
+      tehai_len: self.tehai_len(),
+      kawahai: { let kawahai = self.kawahai(); flatbuffers::array_init(|i| kawahai.get(i).unpack()) },
+      kawahai_len: self.kawahai_len(),
+      tsumohai: self.tsumohai().unpack(),
+      is_tsumo: self.is_tsumo(),
+      is_riichi: self.is_riichi(),
+      is_ippatsu: self.is_ippatsu(),
+      score: self.score(),
     }
   }
 }
 
-pub struct PlayerBuilder<'a: 'b, 'b> {
-  fbb_: &'b mut flatbuffers::FlatBufferBuilder<'a>,
-  start_: flatbuffers::WIPOffset<flatbuffers::TableUnfinishedWIPOffset>,
-}
-impl<'a: 'b, 'b> PlayerBuilder<'a, 'b> {
-  #[inline]
-  pub fn add_name(&mut self, name: flatbuffers::WIPOffset<&'b  str>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Player::VT_NAME, name);
-  }
-  #[inline]
-  pub fn add_mentsu(&mut self, mentsu: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Mentsu<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Player::VT_MENTSU, mentsu);
-  }
-  #[inline]
-  pub fn add_tehai(&mut self, tehai: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Pai<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Player::VT_TEHAI, tehai);
-  }
-  #[inline]
-  pub fn add_kawahai(&mut self, kawahai: flatbuffers::WIPOffset<flatbuffers::Vector<'b , flatbuffers::ForwardsUOffset<Pai<'b >>>>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<_>>(Player::VT_KAWAHAI, kawahai);
-  }
-  #[inline]
-  pub fn add_tsumohai(&mut self, tsumohai: flatbuffers::WIPOffset<Pai<'b >>) {
-    self.fbb_.push_slot_always::<flatbuffers::WIPOffset<Pai>>(Player::VT_TSUMOHAI, tsumohai);
-  }
-  #[inline]
-  pub fn add_is_riichi(&mut self, is_riichi: bool) {
-    self.fbb_.push_slot::<bool>(Player::VT_IS_RIICHI, is_riichi, false);
-  }
-  #[inline]
-  pub fn add_is_ippatsu(&mut self, is_ippatsu: bool) {
-    self.fbb_.push_slot::<bool>(Player::VT_IS_IPPATSU, is_ippatsu, false);
-  }
-  #[inline]
-  pub fn add_score(&mut self, score: i32) {
-    self.fbb_.push_slot::<i32>(Player::VT_SCORE, score, 0);
-  }
-  #[inline]
-  pub fn new(_fbb: &'b mut flatbuffers::FlatBufferBuilder<'a>) -> PlayerBuilder<'a, 'b> {
-    let start = _fbb.start_table();
-    PlayerBuilder {
-      fbb_: _fbb,
-      start_: start,
-    }
-  }
-  #[inline]
-  pub fn finish(self) -> flatbuffers::WIPOffset<Player<'a>> {
-    let o = self.fbb_.end_table(self.start_);
-    flatbuffers::WIPOffset::new(o.value())
-  }
-}
-
-impl core::fmt::Debug for Player<'_> {
-  fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-    let mut ds = f.debug_struct("Player");
-      ds.field("name", &self.name());
-      ds.field("mentsu", &self.mentsu());
-      ds.field("tehai", &self.tehai());
-      ds.field("kawahai", &self.kawahai());
-      ds.field("tsumohai", &self.tsumohai());
-      ds.field("is_riichi", &self.is_riichi());
-      ds.field("is_ippatsu", &self.is_ippatsu());
-      ds.field("score", &self.score());
-      ds.finish()
-  }
-}
-#[non_exhaustive]
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Default)]
 pub struct PlayerT {
-  pub name: Option<String>,
-  pub mentsu: Option<Vec<MentsuT>>,
-  pub tehai: Option<Vec<PaiT>>,
-  pub kawahai: Option<Vec<PaiT>>,
-  pub tsumohai: Option<Box<PaiT>>,
+  pub name: FixedStringT,
+  pub mentsu: [MentsuT; 4],
+  pub mentsu_len: u32,
+  pub tehai: [PaiT; 13],
+  pub tehai_len: u32,
+  pub kawahai: [PaiT; 20],
+  pub kawahai_len: u32,
+  pub tsumohai: PaiT,
+  pub is_tsumo: bool,
   pub is_riichi: bool,
   pub is_ippatsu: bool,
   pub score: i32,
 }
-impl Default for PlayerT {
-  fn default() -> Self {
-    Self {
-      name: None,
-      mentsu: None,
-      tehai: None,
-      kawahai: None,
-      tsumohai: None,
-      is_riichi: false,
-      is_ippatsu: false,
-      score: 0,
+impl PlayerT {
+  pub fn pack(&self) -> Player {
+    Player::new(
+      &self.name.pack(),
+      &flatbuffers::array_init(|i| self.mentsu[i].pack()),
+      self.mentsu_len,
+      &flatbuffers::array_init(|i| self.tehai[i].pack()),
+      self.tehai_len,
+      &flatbuffers::array_init(|i| self.kawahai[i].pack()),
+      self.kawahai_len,
+      &self.tsumohai.pack(),
+      self.is_tsumo,
+      self.is_riichi,
+      self.is_ippatsu,
+      self.score,
+    )
+  }
+}
+
+// struct GameState, aligned to 4
+#[repr(transparent)]
+#[derive(Clone, Copy, PartialEq)]
+pub struct GameState(pub [u8; 3016]);
+impl Default for GameState { 
+  fn default() -> Self { 
+    Self([0; 3016])
+  }
+}
+impl core::fmt::Debug for GameState {
+  fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+    f.debug_struct("GameState")
+      .field("title", &self.title())
+      .field("players", &self.players())
+      .field("player_len", &self.player_len())
+      .field("bakaze", &self.bakaze())
+      .field("zikaze", &self.zikaze())
+      .field("tsumobou", &self.tsumobou())
+      .field("riichibou", &self.riichibou())
+      .field("teban", &self.teban())
+      .field("taku", &self.taku())
+      .field("taku_cursol", &self.taku_cursol())
+      .finish()
+  }
+}
+
+impl flatbuffers::SimpleToVerifyInSlice for GameState {}
+impl<'a> flatbuffers::Follow<'a> for GameState {
+  type Inner = &'a GameState;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    <&'a GameState>::follow(buf, loc)
+  }
+}
+impl<'a> flatbuffers::Follow<'a> for &'a GameState {
+  type Inner = &'a GameState;
+  #[inline]
+  unsafe fn follow(buf: &'a [u8], loc: usize) -> Self::Inner {
+    flatbuffers::follow_cast_ref::<GameState>(buf, loc)
+  }
+}
+impl<'b> flatbuffers::Push for GameState {
+    type Output = GameState;
+    #[inline]
+    unsafe fn push(&self, dst: &mut [u8], _written_len: usize) {
+        let src = ::core::slice::from_raw_parts(self as *const GameState as *const u8, Self::size());
+        dst.copy_from_slice(src);
+    }
+}
+
+impl<'a> flatbuffers::Verifiable for GameState {
+  #[inline]
+  fn run_verifier(
+    v: &mut flatbuffers::Verifier, pos: usize
+  ) -> Result<(), flatbuffers::InvalidFlatbuffer> {
+    use self::flatbuffers::Verifiable;
+    v.in_buffer::<Self>(pos)
+  }
+}
+
+impl<'a> GameState {
+  #[allow(clippy::too_many_arguments)]
+  pub fn new(
+    title: &FixedString,
+    players: &[Player; 4],
+    player_len: u32,
+    bakaze: u32,
+    zikaze: u32,
+    tsumobou: u32,
+    riichibou: u32,
+    teban: u32,
+    taku: &Taku,
+    taku_cursol: u32,
+  ) -> Self {
+    let mut s = Self([0; 3016]);
+    s.set_title(title);
+    s.set_players(players);
+    s.set_player_len(player_len);
+    s.set_bakaze(bakaze);
+    s.set_zikaze(zikaze);
+    s.set_tsumobou(tsumobou);
+    s.set_riichibou(riichibou);
+    s.set_teban(teban);
+    s.set_taku(taku);
+    s.set_taku_cursol(taku_cursol);
+    s
+  }
+
+  pub fn title(&self) -> &FixedString {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
+    unsafe { &*(self.0[0..].as_ptr() as *const FixedString) }
+  }
+
+  #[allow(clippy::identity_op)]
+  pub fn set_title(&mut self, x: &FixedString) {
+    self.0[0..0 + 256].copy_from_slice(&x.0)
+  }
+
+  pub fn players(&'a self) -> flatbuffers::Array<'a, Player, 4> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 256) }
+  }
+
+  pub fn set_players(&mut self, x: &[Player; 4]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe {
+      core::ptr::copy(
+        x.as_ptr() as *const u8,
+        self.0.as_mut_ptr().add(256),
+        2048,
+      );
+    }
+  }
+
+  pub fn player_len(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2304..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_player_len(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2304..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn bakaze(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2308..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_bakaze(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2308..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn zikaze(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2312..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_zikaze(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2312..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn tsumobou(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2316..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_tsumobou(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2316..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn riichibou(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2320..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_riichibou(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2320..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn teban(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[2324..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_teban(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[2324..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn taku(&self) -> &Taku {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid struct in this slot
+    unsafe { &*(self.0[2328..].as_ptr() as *const Taku) }
+  }
+
+  #[allow(clippy::identity_op)]
+  pub fn set_taku(&mut self, x: &Taku) {
+    self.0[2328..2328 + 684].copy_from_slice(&x.0)
+  }
+
+  pub fn taku_cursol(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[3012..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_taku_cursol(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[3012..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn unpack(&self) -> GameStateT {
+    GameStateT {
+      title: self.title().unpack(),
+      players: { let players = self.players(); flatbuffers::array_init(|i| players.get(i).unpack()) },
+      player_len: self.player_len(),
+      bakaze: self.bakaze(),
+      zikaze: self.zikaze(),
+      tsumobou: self.tsumobou(),
+      riichibou: self.riichibou(),
+      teban: self.teban(),
+      taku: self.taku().unpack(),
+      taku_cursol: self.taku_cursol(),
     }
   }
 }
-impl PlayerT {
-  pub fn pack<'b>(
-    &self,
-    _fbb: &mut flatbuffers::FlatBufferBuilder<'b>
-  ) -> flatbuffers::WIPOffset<Player<'b>> {
-    let name = self.name.as_ref().map(|x|{
-      _fbb.create_string(x)
-    });
-    let mentsu = self.mentsu.as_ref().map(|x|{
-      let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
-    });
-    let tehai = self.tehai.as_ref().map(|x|{
-      let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
-    });
-    let kawahai = self.kawahai.as_ref().map(|x|{
-      let w: Vec<_> = x.iter().map(|t| t.pack(_fbb)).collect();_fbb.create_vector(&w)
-    });
-    let tsumohai = self.tsumohai.as_ref().map(|x|{
-      x.pack(_fbb)
-    });
-    let is_riichi = self.is_riichi;
-    let is_ippatsu = self.is_ippatsu;
-    let score = self.score;
-    Player::create(_fbb, &PlayerArgs{
-      name,
-      mentsu,
-      tehai,
-      kawahai,
-      tsumohai,
-      is_riichi,
-      is_ippatsu,
-      score,
-    })
+
+#[derive(Debug, Clone, PartialEq, Default)]
+pub struct GameStateT {
+  pub title: FixedStringT,
+  pub players: [PlayerT; 4],
+  pub player_len: u32,
+  pub bakaze: u32,
+  pub zikaze: u32,
+  pub tsumobou: u32,
+  pub riichibou: u32,
+  pub teban: u32,
+  pub taku: TakuT,
+  pub taku_cursol: u32,
+}
+impl GameStateT {
+  pub fn pack(&self) -> GameState {
+    GameState::new(
+      &self.title.pack(),
+      &flatbuffers::array_init(|i| self.players[i].pack()),
+      self.player_len,
+      self.bakaze,
+      self.zikaze,
+      self.tsumobou,
+      self.riichibou,
+      self.teban,
+      &self.taku.pack(),
+      self.taku_cursol,
+    )
   }
 }
+
 }  // pub mod OpenMahjong
 

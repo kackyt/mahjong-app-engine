@@ -20,9 +20,14 @@ fn parse_testcase(path: &Path) -> io::Result<Vec<(Vec<PaiT>, i32)>> {
         let mut pai_array: Vec<PaiT> = Vec::new();
 
         for i in 0..14 {
-            let mut p: PaiT = Default::default();
+            let p = PaiT {
+                pai_num: numbers[i] as u8,
+                id: 1,
+                is_tsumogiri: false,
+                is_riichi: false,
+                is_nakare: false
+            };
 
-            p.pai_num = numbers[i] as u8;
             pai_array.push(p);
         }
 

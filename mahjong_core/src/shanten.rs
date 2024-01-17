@@ -1,4 +1,4 @@
-use crate::mahjong_generated::open_mahjong::{MentsuFlag, MentsuT, PaiT};
+use crate::mahjong_generated::open_mahjong::{Mentsu, MentsuFlag, PaiT};
 use itertools::iproduct;
 
 /// 牌姿の内部表現
@@ -7,9 +7,8 @@ pub struct PaiState {
     pub hai_count_p: [i32; 9],
     pub hai_count_s: [i32; 9],
     pub hai_count_z: [i32; 7],
-    pub fulo: Vec<MentsuT>,
+    pub fulo: Vec<Mentsu>,
     pub num_dora: i32,
-    pub tsumohai: Option<PaiT>,
 }
 
 pub fn shanten(mut n_mentsu: i32, mut n_tahtsu: i32, mut n_koritsu: i32, b_atama: bool) -> i32 {
@@ -122,7 +121,6 @@ impl PaiState {
             hai_count_z,
             fulo: vec![],
             num_dora: 0,
-            tsumohai: None,
         }
     }
 
@@ -210,7 +208,7 @@ impl PaiT {
     }
 }
 
-impl MentsuT {
+impl Mentsu {
     pub fn is_valid(&self) -> bool {
         let mut prev: u8 = 0;
         let mut naki = MentsuFlag::FLAG_NONE;
