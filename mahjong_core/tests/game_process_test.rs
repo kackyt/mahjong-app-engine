@@ -7,6 +7,7 @@ fn game_start_test() {
 
   // 1人プレイのテスト
   state.create("test".as_bytes(), 1);
+  state.shuffle();
 
   state.start();
 

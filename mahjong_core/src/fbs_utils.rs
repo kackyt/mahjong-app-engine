@@ -155,6 +155,7 @@ impl Into<Vec<u8>> for FixedString {
 }
 
 pub trait TakuControl {
+    fn load(list: &Vec<i32>) -> Self;
     fn create_shuffled() -> Self;
     fn search(&self, target: &PaiT) -> Result<usize, ()>;
     fn get(&self, index: usize) -> Result<PaiT, ()>;
@@ -206,6 +207,33 @@ impl TakuControl for Taku {
 
     fn get_range(&self, r: Range<usize>) -> Result<Vec<PaiT>, ()> {
         self.unpack().get_range(r)
+    }
+
+    fn load(list: &Vec<i32>) -> Self {
+        let hai_array: Vec<Pai> = list.into_iter().map(|x| Pai::new(
+            (x >> 2) as u8,
+            (x & 3) as u8,
+            false,
+            false,
+            false)).collect();
+        let mut dst = [Pai::new(0, 0, false, false, false); 32];
+        let mut dst2 = [Pai::new(0, 0, false, false, false); 8];
+        let mut s = Self::new(&dst, &dst, &dst, &dst, &dst2, 0);
+
+        dst.copy_from_slice(&hai_array[0..32]);
+        s.set_n1(&dst);
+        dst.copy_from_slice(&hai_array[32..64]);
+        s.set_n2(&dst);
+        dst.copy_from_slice(&hai_array[64..96]);
+        s.set_n3(&dst);
+        dst.copy_from_slice(&hai_array[96..128]);
+        s.set_n4(&dst);
+        dst2.copy_from_slice(&hai_array[128..136]);
+        s.set_n5(&dst2);
+
+        s.set_length(136);
+
+        s
     }
 }
 
@@ -342,5 +370,9 @@ impl TakuControl for TakuT {
         }
 
         Ok(v)
+    }
+
+    fn load(list: &Vec<i32>) -> Self {
+        Taku::load(list).unpack()
     }
 }
