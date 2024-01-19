@@ -628,10 +628,13 @@ dependencies = [
 name = "mahjong_core"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "arrow-array",
  "flatbuffers",
  "itertools",
  "parquet",
  "rand",
+ "true",
 ]
 
 [[package]]
@@ -1006,6 +1009,12 @@ checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
 dependencies = [
  "crunchy",
 ]
+
+[[package]]
+name = "true"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "548ec159e98411c04bee9b458df4ccd2da2a0a5e50c08cbd7e90b00b154c5a9a"
 
 [[package]]
 name = "twox-hash"

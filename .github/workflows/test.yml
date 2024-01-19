@@ -15,4 +15,12 @@ jobs:
           profile: minimal
           override: true
       - name: test
-        run: cargo test
+        run: cargo test -p mahjong_core --features "load-pailist"
+      - name: rust-grcov
+        # You may pin to the exact commit or the version.
+        # uses: actions-rs/grcov@bb47b1ed7883a1502fa6875d562727ace2511248
+        uses: actions-rs/grcov@v0.1
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4-beta
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

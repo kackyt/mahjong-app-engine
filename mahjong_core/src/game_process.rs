@@ -13,9 +13,15 @@ impl GameStateT {
         }
     }
 
-    pub fn start(&mut self) {
-        self.taku = TakuT::create_shuffled();
+    pub fn shuffle(&mut self) {
+        self.taku = TakuT::create_shuffled()
+    }
 
+    pub fn load(&mut self, hai_ids: &Vec<i32>) {
+        self.taku = TakuT::load(hai_ids);
+    }
+
+    pub fn start(&mut self) {
         // 配牌
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];

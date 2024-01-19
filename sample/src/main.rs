@@ -3,13 +3,15 @@ use std::ffi::CString;
 use clap::Parser;
 use anyhow::ensure;
 use crossterm::{terminal::{enable_raw_mode, disable_raw_mode}, event::{Event, KeyCode, read}};
-use mahjong_core::mahjong_generated::open_mahjong::{GameStateT, PaiT, ActionType};
+use mahjong_core::{mahjong_generated::open_mahjong::{GameStateT, PaiT, ActionType}, load_pailist::load_pailist};
 
 #[derive(Parser, Debug)]
 #[command(author, about, version)]
 struct Command {
     #[arg(short, long)]
     pai_list_file: Option<String>,
+    #[arg(short, long, default_value_t=0)]
+    index: usize
 }
 
 fn hai_to_str(p: &PaiT) -> String {
@@ -75,6 +77,13 @@ fn main() -> anyhow::Result<()> {
     println!("initialize\r");
 
     game_state.create(title.as_bytes(), 1);
+    if let Some(pai_list) = args.pai_list_file {
+        let hai_ids = load_pailist(pai_list, args.index)?;
+        game_state.load(&hai_ids);
+    } else {
+        game_state.shuffle();
+    }
+
     game_state.start();
 
     loop {
