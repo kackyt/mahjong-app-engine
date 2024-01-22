@@ -1,4 +1,4 @@
-use crate::{mahjong_generated::open_mahjong::{PaiT, MentsuT}, shanten::PaiState};
+use crate::{mahjong_generated::open_mahjong::{PaiT, MentsuT, Mentsu, Pai}, shanten::PaiState};
 
 
 #[derive(Default)]
@@ -45,6 +45,125 @@ struct Agari {
     yaku: Vec<(String, i32)>, // 役名, 飜数
 }
 
+/* pub fn add_machi_to_mentsu(mentsu: &mut Vec<Vec<Mentsu>>, machihai: &Pai) -> Vec<Vec<Mentsu>> {
+    let mut ret: Vec<Vec<Mentsu>> = Vec::new();
+
+
+    mentsu.into_iter().for_each(|item| {
+        item.into_iter().for_each(|item2| {
+            let mut mentsu = item2.clone();
+
+            mentsu.pai_list().into_iter().for_each(|item3| {
+                if item3.pai_num() == machihai.pai_num() {
+                    mentsu.push(Mentsu::from(machihai));
+                }
+            });
+            mentsu.push(Mentsu::from(machihai));
+            ret.push(mentsu);
+        });
+        let mut mentsu = item.clone();
+        mentsu.push(Mentsu::from(machihai));
+        ret.push(mentsu);
+    });
+
+    ret
+}
+ */
+
+pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Vec<(i32, bool)>>>, p: i32) -> Vec<Vec<Vec<(i32, bool)>>> {
+    let mut result = Vec::new();
+
+    // 各mentsu_vecに対して処理を行う
+    for mentsu_vec in mentsu.iter() {
+        let mut positions = Vec::new();
+
+        for (index, mentsu_subvec) in mentsu_vec.iter().enumerate() {
+            for (index2, mentsu_sub) in mentsu_subvec.iter().enumerate() {
+                if mentsu_sub.0 == p {
+                    positions.push((index, index2));
+                    break;
+                }
+            }
+        }
+
+        if !positions.is_empty() {
+            // すべての組み合わせを生成
+            for &pos in &positions {
+                let mut temp_vecs = vec![Vec::new()];
+                for new_vec in &mut temp_vecs {
+                    for (index, mentsu_subvec) in mentsu_vec.iter().enumerate() {
+                        let updated_subvec = if pos.0 == index {
+                            mentsu_subvec.iter().enumerate().map(|(idx, &(num, _))| (num, idx == pos.1)).collect()
+                        } else {
+                            mentsu_subvec.clone()
+                        };
+                        new_vec.push(updated_subvec);
+                    }
+                }
+                result.extend(temp_vecs);
+            }
+        } else {
+            result.push(mentsu_vec.clone());
+        }
+    }
+
+    result
+}
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_add_machi_to_mentsu() {
+        let mut mentsu = vec![
+            vec![
+                vec![(1, false), (2, false), (3, false)],
+                vec![(4, false), (5, false), (6, false)],
+            ],
+            vec![
+                vec![(7, false), (8, false), (9, false)],
+                vec![(1, false), (2, false), (3, false)],
+            ],
+        ];
+
+        let result = add_machi_to_mentsu(&mut mentsu, 2);
+        
+        assert_eq!(result, vec![
+            vec![vec![(1, false), (2, true), (3, false)], vec![(4, false), (5, false), (6, false)]],
+            vec![vec![(7, false), (8, false), (9, false)], vec![(1, false), (2, true), (3, false)]],
+        ]);
+    }
+
+
+
+    #[test]
+    fn test_add_machi_to_mentsu2() {
+        let mut mentsu = vec![
+            vec![
+                vec![(1, false), (2, false), (2, false)],
+                vec![(4, false), (5, false), (6, false)],
+            ],
+            vec![
+                vec![(7, false), (8, false), (2, false)],
+                vec![(1, false), (2, false), (3, false)],
+            ],
+        ];
+
+        let result = add_machi_to_mentsu(&mut mentsu, 2);
+        
+        assert_eq!(result, vec![
+            vec![vec![(1, false), (2, true), (2, false)], vec![(4, false), (5, false), (6, false)]],
+            vec![vec![(7, false), (8, false), (2, true)], vec![(1, false), (2, false), (3, false)]],
+            vec![vec![(7, false), (8, false), (2, false)], vec![(1, false), (2, true), (3, false)]],
+        ]);
+    }
+
+}
+
+
 /// 一般形の上がりメンツを作ります
 fn make_agari_ippankei(tehai: &Vec<PaiT>, fulo: &Vec<MentsuT>) -> Vec<MentsuT> {
     let mut paistate: PaiState = PaiState::from(tehai);
@@ -52,8 +171,6 @@ fn make_agari_ippankei(tehai: &Vec<PaiT>, fulo: &Vec<MentsuT>) -> Vec<MentsuT> {
 
     agari
 }
-
-
 
 ///　あがり役を判定します
 fn get_yaku(tehai: &Vec<MentsuT>, machihai: &PaiT, fulo: &Vec<MentsuT>, num_dora: i32) -> Vec<(String, i32)> {
