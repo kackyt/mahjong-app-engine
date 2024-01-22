@@ -2,7 +2,7 @@
 mod load_pailist_test {
     use std::path::PathBuf;
 
-    use mahjong_core::{load_pailist, shanten::{all_of_mentsu, PaiState}};
+    use mahjong_core::{load_pailist, shanten::{PaiState, all_of_mentsu}};
 
     #[test]
     fn test_load_pailist() {
@@ -33,6 +33,6 @@ mod load_pailist_test {
 
         println!("{:?}\r", all_mentsu);
 
-        assert_eq!(all_mentsu[0].len(), 4);
+        assert_eq!(all_mentsu[0].len(), 5);
     }
 }

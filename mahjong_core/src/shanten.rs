@@ -112,7 +112,6 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
 
     // 順子を抜き出す
     if n < 7 && hai_count[n] > 0 && hai_count[n + 1] > 0 && hai_count[n + 2] > 0 {
-        println!("find {} {}\r", suit, n);
         let m = Mentsu::new(&[
             MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
             MentsuPai::new((n + suit * 9 + 1) as u8, 0, MentsuFlag::FLAG_NONE),
@@ -150,6 +149,7 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
         hai_count[n] += 3;
 
         koutsu = k.into_iter().map(|mut x|{
+            x.insert(0, m);
             x
         }).collect();
     }
@@ -163,13 +163,13 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
     }
 }
 
-pub fn all_of_mentsu(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
+fn all_of_mentsu_without_atama(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
 
     let mut all_mentsu: Vec<Vec<Mentsu>> = vec![];
 
-    let mut man = all_of_suit_mentsu(0, &mut pai_state.hai_count_m, 0);
-    let mut pin = all_of_suit_mentsu(1, &mut pai_state.hai_count_p, 0);
-    let mut sou = all_of_suit_mentsu(2, &mut pai_state.hai_count_s, 0);
+    let man = all_of_suit_mentsu(0, &mut pai_state.hai_count_m, 0);
+    let pin = all_of_suit_mentsu(1, &mut pai_state.hai_count_p, 0);
+    let sou = all_of_suit_mentsu(2, &mut pai_state.hai_count_s, 0);
 
     all_mentsu = iproduct!(man, pin, sou).map(|(m, p, s)| {
         [m, p, s].concat()
@@ -196,6 +196,82 @@ pub fn all_of_mentsu(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
     }).collect::<Vec<Vec<Mentsu>>>()
 }
 
+pub fn all_of_mentsu(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
+    let fulo_len = pai_state.fulo.len();
+    let mut all_mentsu: Vec<Vec<Mentsu>> = vec![];
+    for n in 0..9 {
+        if pai_state.hai_count_m[n] >= 2 {
+            let m = Mentsu::new(&[
+                MentsuPai::new(n as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(n as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+                2,
+                MentsuType::TYPE_ATAMA);
+            pai_state.hai_count_m[n] -= 2;
+            let r = all_of_mentsu_without_atama(pai_state);
+            pai_state.hai_count_m[n] += 2;
+            all_mentsu.extend(r.into_iter().map(|mut x| {
+                x.insert(0, m);
+                x
+            }).collect::<Vec<Vec<Mentsu>>>());
+        }
+
+        if pai_state.hai_count_p[n] >= 2 {
+            let m = Mentsu::new(&[
+                MentsuPai::new((n + 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new((n + 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+                2,
+                MentsuType::TYPE_ATAMA);
+            pai_state.hai_count_p[n] -= 2;
+            let r = all_of_mentsu_without_atama(pai_state);
+            pai_state.hai_count_p[n] += 2;
+            all_mentsu.extend(r.into_iter().map(|mut x| {
+                x.insert(0, m);
+                x
+            }).collect::<Vec<Vec<Mentsu>>>());
+        }
+
+        if pai_state.hai_count_s[n] >= 2 {
+            let m = Mentsu::new(&[
+                MentsuPai::new((n + 18) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new((n + 18) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+                2,
+                MentsuType::TYPE_ATAMA);
+            pai_state.hai_count_s[n] -= 2;
+            let r = all_of_mentsu_without_atama(pai_state);
+            pai_state.hai_count_s[n] += 2;
+            all_mentsu.extend(r.into_iter().map(|mut x| {
+                x.insert(0, m);
+                x
+            }).collect::<Vec<Vec<Mentsu>>>());
+        }
+
+        if n < 7 && pai_state.hai_count_z[n] >= 2 {
+            let m = Mentsu::new(&[
+                MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+                2,
+                MentsuType::TYPE_ATAMA);
+            pai_state.hai_count_z[n] -= 2;
+            let r = all_of_mentsu_without_atama(pai_state);
+            pai_state.hai_count_z[n] += 2;
+            all_mentsu.extend(r.into_iter().map(|mut x| {
+                x.insert(0, m);
+                x
+            }).collect::<Vec<Vec<Mentsu>>>());
+        }
+    }
+    all_mentsu.into_iter().filter(|x| {
+        x.len() + fulo_len >= 5
+    }).collect::<Vec<Vec<Mentsu>>>()
+}
 
 impl PaiState {
     pub fn from(value: &Vec<PaiT>) -> Self {
