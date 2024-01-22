@@ -51,6 +51,7 @@ enum MentsuFlag : ubyte {
     FLAG_KAMICHA,
     FLAG_TOIMEN,
     FLAG_SIMOCHA,
+    FLAG_TSUMO,
 }
 
 struct MentsuPai {
@@ -62,6 +63,7 @@ struct MentsuPai {
 struct Mentsu {
     pai_list: [MentsuPai: 4];
     pai_len: uint;
+    mentsu_type: MentsuType;
 }
 
 struct Player {
