@@ -51,7 +51,7 @@ enum MentsuFlag : ubyte {
     FLAG_KAMICHA,
     FLAG_TOIMEN,
     FLAG_SIMOCHA,
-    FLAG_TSUMO,
+    FLAG_AGARI,
 }
 
 struct MentsuPai {

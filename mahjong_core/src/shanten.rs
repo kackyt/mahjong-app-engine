@@ -8,7 +8,7 @@ pub struct PaiState {
     pub hai_count_p: [i32; 9],
     pub hai_count_s: [i32; 9],
     pub hai_count_z: [i32; 7],
-    pub fulo: Vec<MentsuT>,
+    pub fulo: Vec<Mentsu>,
     pub num_dora: i32,
 }
 

@@ -231,7 +231,7 @@ pub const ENUM_VALUES_MENTSU_FLAG: [MentsuFlag; 5] = [
   MentsuFlag::FLAG_KAMICHA,
   MentsuFlag::FLAG_TOIMEN,
   MentsuFlag::FLAG_SIMOCHA,
-  MentsuFlag::FLAG_TSUMO,
+  MentsuFlag::FLAG_AGARI,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -243,7 +243,7 @@ impl MentsuFlag {
   pub const FLAG_KAMICHA: Self = Self(1);
   pub const FLAG_TOIMEN: Self = Self(2);
   pub const FLAG_SIMOCHA: Self = Self(3);
-  pub const FLAG_TSUMO: Self = Self(4);
+  pub const FLAG_AGARI: Self = Self(4);
 
   pub const ENUM_MIN: u8 = 0;
   pub const ENUM_MAX: u8 = 4;
@@ -252,7 +252,7 @@ impl MentsuFlag {
     Self::FLAG_KAMICHA,
     Self::FLAG_TOIMEN,
     Self::FLAG_SIMOCHA,
-    Self::FLAG_TSUMO,
+    Self::FLAG_AGARI,
   ];
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
@@ -261,7 +261,7 @@ impl MentsuFlag {
       Self::FLAG_KAMICHA => Some("FLAG_KAMICHA"),
       Self::FLAG_TOIMEN => Some("FLAG_TOIMEN"),
       Self::FLAG_SIMOCHA => Some("FLAG_SIMOCHA"),
-      Self::FLAG_TSUMO => Some("FLAG_TSUMO"),
+      Self::FLAG_AGARI => Some("FLAG_AGARI"),
       _ => None,
     }
   }
