@@ -1,4 +1,4 @@
-use crate::{mahjong_generated::open_mahjong::{PaiT, MentsuT, Mentsu, Pai}, shanten::PaiState};
+use crate::{mahjong_generated::open_mahjong::{PaiT, MentsuT, Mentsu, Pai, MentsuPai, MentsuFlag}, shanten::PaiState};
 
 
 #[derive(Default)]
@@ -45,41 +45,17 @@ struct Agari {
     yaku: Vec<(String, i32)>, // 役名, 飜数
 }
 
-/* pub fn add_machi_to_mentsu(mentsu: &mut Vec<Vec<Mentsu>>, machihai: &Pai) -> Vec<Vec<Mentsu>> {
-    let mut ret: Vec<Vec<Mentsu>> = Vec::new();
-
-
-    mentsu.into_iter().for_each(|item| {
-        item.into_iter().for_each(|item2| {
-            let mut mentsu = item2.clone();
-
-            mentsu.pai_list().into_iter().for_each(|item3| {
-                if item3.pai_num() == machihai.pai_num() {
-                    mentsu.push(Mentsu::from(machihai));
-                }
-            });
-            mentsu.push(Mentsu::from(machihai));
-            ret.push(mentsu);
-        });
-        let mut mentsu = item.clone();
-        mentsu.push(Mentsu::from(machihai));
-        ret.push(mentsu);
-    });
-
-    ret
-}
- */
-
-pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Vec<(i32, bool)>>>, p: i32) -> Vec<Vec<Vec<(i32, bool)>>> {
+pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Mentsu>>, p: &Pai) -> Vec<Vec<Mentsu>> {
     let mut result = Vec::new();
 
     // 各mentsu_vecに対して処理を行う
     for mentsu_vec in mentsu.iter() {
         let mut positions = Vec::new();
 
+        // ツモフラグを立てるべき牌の位置を探す
         for (index, mentsu_subvec) in mentsu_vec.iter().enumerate() {
-            for (index2, mentsu_sub) in mentsu_subvec.iter().enumerate() {
-                if mentsu_sub.0 == p {
+            for (index2, mentsu_sub) in mentsu_subvec.pai_list().iter().enumerate() {
+                if mentsu_sub.pai_num() == p.pai_num() {
                     positions.push((index, index2));
                     break;
                 }
@@ -87,23 +63,21 @@ pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Vec<(i32, bool)>>>, p: i32) -> Vec<V
         }
 
         if !positions.is_empty() {
-            // すべての組み合わせを生成
+            // ツモのすべての組み合わせを生成
             for &pos in &positions {
-                let mut temp_vecs = vec![Vec::new()];
-                for new_vec in &mut temp_vecs {
-                    for (index, mentsu_subvec) in mentsu_vec.iter().enumerate() {
-                        let updated_subvec = if pos.0 == index {
-                            mentsu_subvec.iter().enumerate().map(|(idx, &(num, _))| (num, idx == pos.1)).collect()
-                        } else {
-                            mentsu_subvec.clone()
-                        };
-                        new_vec.push(updated_subvec);
+                let temp_vecs = mentsu_vec.iter().enumerate().map(|(idx, mentsu)| {
+                    if idx == pos.0 {
+                        let mut mentsu_t = mentsu.unpack();
+                        let pai = &mut mentsu_t.pai_list[pos.1];
+                        pai.flag = MentsuFlag::FLAG_TSUMO;
+
+                        mentsu_t.pack()
+                    } else {
+                        mentsu.clone()
                     }
-                }
-                result.extend(temp_vecs);
+                }).collect::<Vec<Mentsu>>();
+                result.push(temp_vecs);
             }
-        } else {
-            result.push(mentsu_vec.clone());
         }
     }
 
@@ -114,50 +88,160 @@ pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Vec<(i32, bool)>>>, p: i32) -> Vec<V
 
 #[cfg(test)]
 mod tests {
+    use crate::mahjong_generated::open_mahjong::MentsuType;
+
     use super::*;
 
     #[test]
     fn test_add_machi_to_mentsu() {
-        let mut mentsu = vec![
+        let mentsu = vec![
             vec![
-                vec![(1, false), (2, false), (3, false)],
-                vec![(4, false), (5, false), (6, false)],
+                Mentsu::new(&[
+                    MentsuPai::new(1, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(4, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(5, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(6, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
             ],
             vec![
-                vec![(7, false), (8, false), (9, false)],
-                vec![(1, false), (2, false), (3, false)],
+                Mentsu::new(&[
+                    MentsuPai::new(7, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(9, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(1, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
             ],
         ];
 
-        let result = add_machi_to_mentsu(&mut mentsu, 2);
+        let p = Pai::new(2, 0, false, false, false);
+
+        let result = add_machi_to_mentsu(&mentsu, &p);
         
         assert_eq!(result, vec![
-            vec![vec![(1, false), (2, true), (3, false)], vec![(4, false), (5, false), (6, false)]],
-            vec![vec![(7, false), (8, false), (9, false)], vec![(1, false), (2, true), (3, false)]],
+            vec![
+                Mentsu::new(&[
+                    MentsuPai::new(1, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_TSUMO),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(4, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(5, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(6, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+            ],
+            vec![
+                Mentsu::new(&[
+                    MentsuPai::new(7, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(9, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(1, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_TSUMO),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+            ],
         ]);
     }
 
 
-
     #[test]
     fn test_add_machi_to_mentsu2() {
-        let mut mentsu = vec![
+        let mentsu = vec![
             vec![
-                vec![(1, false), (2, false), (2, false)],
-                vec![(4, false), (5, false), (6, false)],
+                Mentsu::new(&[
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_KOUTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(4, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(5, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(6, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
             ],
             vec![
-                vec![(7, false), (8, false), (2, false)],
-                vec![(1, false), (2, false), (3, false)],
+                Mentsu::new(&[
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(4, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(1, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
             ],
         ];
 
-        let result = add_machi_to_mentsu(&mut mentsu, 2);
+        let p = Pai::new(2, 0, false, false, false);
+
+        let result = add_machi_to_mentsu(&mentsu, &p);
         
         assert_eq!(result, vec![
-            vec![vec![(1, false), (2, true), (2, false)], vec![(4, false), (5, false), (6, false)]],
-            vec![vec![(7, false), (8, false), (2, true)], vec![(1, false), (2, false), (3, false)]],
-            vec![vec![(7, false), (8, false), (2, false)], vec![(1, false), (2, true), (3, false)]],
+            vec![
+                Mentsu::new(&[
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_TSUMO),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_KOUTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(4, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(5, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(6, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+            ],
+            vec![
+                Mentsu::new(&[
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_TSUMO),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(4, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(1, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+            ],
+            vec![
+                Mentsu::new(&[
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(4, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+                Mentsu::new(&[
+                    MentsuPai::new(1, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(2, 0, MentsuFlag::FLAG_TSUMO),
+                    MentsuPai::new(3, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ], 3, MentsuType::TYPE_SHUNTSU),
+            ],
         ]);
     }
 
