@@ -301,6 +301,12 @@ impl PaiState {
             num_dora: 0,
         }
     }
+    pub fn from_with_fulo(value: &Vec<PaiT>, fulo: &Vec<Mentsu>) -> Self {
+        let mut state = PaiState::from(value);
+
+        state.fulo = fulo.clone();
+        state
+    }
 
     fn get_shanten_case(&mut self, b_atama: bool) -> i32 {
         let m = mentsu_count(&mut self.hai_count_m, 0);

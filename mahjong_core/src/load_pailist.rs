@@ -155,6 +155,15 @@ impl ParquetAgari {
                 self.dora = str_to_pais(pais);
             }
 
+            if name == &String::from("machihai") {
+                let string_array = column.as_any().downcast_ref::<StringArray>().unwrap();
+                let cell = string_array.value(row_index);
+
+                let pais = str_to_pais(cell);
+
+                self.machihai = pais.first().unwrap().clone();
+            }
+
             if name == &String::from("uradora") {
                 let string_array = column.as_any().downcast_ref::<ListArray>().unwrap();
                 let cell = string_array.value(row_index);

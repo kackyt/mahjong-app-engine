@@ -42,7 +42,7 @@ pub struct AgariState {
 
 #[derive(Default, Debug)]
 pub struct Agari {
-    pub ten: i32,
+    pub score: i32,
     pub fu: i32,
     pub han: i32,
     pub yaku: Vec<(String, i32)>, // 役名, 飜数
@@ -851,14 +851,14 @@ impl AgariState {
         if yakumans < 0 {
             // 役満の場合
             agari.fu = 0;
-            agari.ten = 32000 * -yakumans;
+            agari.score = 32000 * -yakumans;
             agari.yaku = yaku.clone().into_iter().filter(|x| x.1 < 0).collect();
         } else {
             agari.fu = self.fu;
             agari.han = han;
             agari.yaku = yaku.clone();
 
-            agari.ten = if han >= 13 {
+            agari.score = if han >= 13 {
                 32000
             } else if han >= 11 {
                 24000
@@ -867,7 +867,8 @@ impl AgariState {
             } else if han >= 6 {
                 12000
             } else {
-                8000.min(agari.fu << (2 + han))
+                let base = (((agari.fu << (4 + han)) + 99) / 100) * 100;
+                8000.min(base)
             };
         }
 
