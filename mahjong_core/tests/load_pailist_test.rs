@@ -23,15 +23,15 @@ mod load_pailist_test {
 
         assert!(ret.is_ok(), "成功");
 
-        let pai_list = ret.unwrap();
+        let parquet = ret.unwrap();
 
-        assert_eq!(pai_list.len(), 14);
+        assert_eq!(parquet.tehai.len(), 14);
 
-        let mut pai_state = PaiState::from(&pai_list);
+        let mut pai_state = PaiState::from(&parquet.tehai);
 
         let all_mentsu = all_of_mentsu(&mut pai_state);
 
-        println!("{:?}\r", all_mentsu);
+        println!("{:?}\r", parquet);
 
         assert_eq!(all_mentsu[0].len(), 5);
     }

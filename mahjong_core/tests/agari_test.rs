@@ -1,6 +1,9 @@
+#[cfg(feature = "load-pailist")]
 #[cfg(test)]
 mod tests {
-    use mahjong_core::{mahjong_generated::open_mahjong::{MentsuFlag, Mentsu, Pai, MentsuType, MentsuPai}, agari::add_machi_to_mentsu};
+    use std::path::PathBuf;
+
+    use mahjong_core::{mahjong_generated::open_mahjong::{MentsuFlag, Mentsu, Pai, MentsuType, MentsuPai, GameStateT}, agari::{add_machi_to_mentsu, AgariBehavior}, load_pailist, shanten::{PaiState, all_of_mentsu}};
 
     #[test]
     fn test_add_machi_to_mentsu() {
@@ -154,6 +157,41 @@ mod tests {
             ],
         ]);
     }
+
+    #[test]
+    fn test_agari_ten() {
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/agaris.parquet");
+        let game_state = GameStateT::default();
+
+        let ret = load_pailist::load_agari_tehai(path, 4);
+
+        assert!(ret.is_ok(), "成功");
+
+        let parquet = ret.unwrap();
+        println!("{:?}\r", parquet);
+
+        assert_eq!(parquet.tehai.len(), 14);
+
+        let mut pai_state = PaiState::from(&parquet.tehai);
+
+        let all_mentsu = all_of_mentsu(&mut pai_state);
+
+        let mentsu = all_mentsu[0].clone();
+        assert_eq!(mentsu.len(), 5);
+        println!("{:?}\r", mentsu);
+
+        let agari_state = game_state.get_agari(&mentsu, &parquet.fulo);
+        let yakus = agari_state.get_yaku_list();
+        let agari = agari_state.get_agari(&yakus);
+
+        println!("{:?}\r", agari_state);
+        println!("{:?}\r", agari);
+        println!("{:?}\r", yakus);
+
+        assert_eq!(agari.fu, parquet.fu);
+        assert_eq!(agari.han, parquet.han);
+    }
+
 
 }
 

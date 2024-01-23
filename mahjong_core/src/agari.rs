@@ -1,51 +1,51 @@
 use crate::mahjong_generated::open_mahjong::{Mentsu, Pai, MentsuFlag, GameStateT, MentsuType};
 
 
-#[derive(Default)]
-struct Shuntsu {
+#[derive(Default, Debug)]
+pub struct Shuntsu {
     m: [i32; 9],
     p: [i32; 9],
     s: [i32; 9],
 }
 
-#[derive(Default)]
-struct Koutsu {
+#[derive(Default, Debug)]
+pub struct Koutsu {
     m: [i32; 9],
     p: [i32; 9],
     s: [i32; 9],
     z: [i32; 7],
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct AgariState {
-    fu: i32,
-    menzen: bool,
-    tsumo: bool,
-    shuntsu: Shuntsu,
-    koutsu: Koutsu,
-    toitsu: Koutsu,
-    n_toitsu: i32,
-    n_shuntsu: i32,
-    n_koutsu: i32,
-    n_ankou: i32,
-    n_kantsu: i32,
-    n_yaochu: i32,
-    n_zihai: i32,
-    tanki: bool,
-    pinfu: bool,
-    kokushi: bool,
-    churen: bool,
-    bakaze: u32,
-    zikaze: u32
+    pub fu: i32,
+    pub menzen: bool,
+    pub tsumo: bool,
+    pub shuntsu: Shuntsu,
+    pub koutsu: Koutsu,
+    pub toitsu: Koutsu,
+    pub n_toitsu: i32,
+    pub n_shuntsu: i32,
+    pub n_koutsu: i32,
+    pub n_ankou: i32,
+    pub n_kantsu: i32,
+    pub n_yaochu: i32,
+    pub n_zihai: i32,
+    pub tanki: bool,
+    pub pinfu: bool,
+    pub kokushi: bool,
+    pub churen: bool,
+    pub bakaze: u32,
+    pub zikaze: u32
 }
 
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct Agari {
-    ten: i32,
-    fu: i32,
-    han: i32,
-    yaku: Vec<(String, i32)>, // 役名, 飜数
+    pub ten: i32,
+    pub fu: i32,
+    pub han: i32,
+    pub yaku: Vec<(String, i32)>, // 役名, 飜数
 }
 
 
@@ -693,7 +693,7 @@ fn is_chinitsu(state: &AgariState) -> Option<(String, i32)> {
 fn is_kokushi(state: &AgariState) -> Option<(String, i32)> {
     if state.kokushi {
         if state.tanki {
-            return Some(("国士無双十三面".to_string(), -2));
+            return Some(("国士無双１３面".to_string(), -2));
         } else {
             return Some(("国士無双".to_string(), -1));
         }
