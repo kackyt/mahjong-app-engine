@@ -93,4 +93,6 @@ struct GameState {
     teban: uint = 0;
     taku: Taku;
     taku_cursol: uint;
+    dora_len: uint;
+    uradora_len: uint;
 }

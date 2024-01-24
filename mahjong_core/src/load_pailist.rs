@@ -1,7 +1,7 @@
 use std::{path::Path, fs::File};
 
 use anyhow::ensure;
-use arrow_array::{array::Int32Array, Array, FixedSizeListArray, StringArray, RecordBatch, ListArray, StructArray};
+use arrow_array::{array::Int32Array, Array, FixedSizeListArray, ListArray, RecordBatch, StringArray, StructArray, UInt32Array};
 use parquet::arrow::arrow_reader::ParquetRecordBatchReaderBuilder;
 
 use crate::mahjong_generated::open_mahjong::{PaiT, Mentsu, MentsuT, MentsuFlag, MentsuType};
@@ -14,9 +14,10 @@ pub struct ParquetAgari {
     pub fu: i32,
     pub han: i32,
     pub score: i32,
-    pub machihai: PaiT,
+    pub machipai: PaiT,
     pub dora: Vec<PaiT>,
     pub uradora: Vec<PaiT>,
+    pub nukidora: u32,
 }
 
 fn str_to_pais<T: AsRef<str>>(input: T) -> Vec<PaiT> {
@@ -145,33 +146,60 @@ impl ParquetAgari {
                 self.score = int_array.value(row_index);
             }
 
-            if name == &String::from("dora") {
+            if name == &String::from("dora_orig") {
                 let string_array = column.as_any().downcast_ref::<ListArray>().unwrap();
                 let cell = string_array.value(row_index);
 
-                let dora_array = cell.as_any().downcast_ref::<StringArray>().unwrap();
+                let dora_array = cell.as_any().downcast_ref::<UInt32Array>().unwrap();
 
-                let pais = (0..dora_array.len()).map(|idx| String::from(dora_array.value(idx))).collect::<Vec<String>>().concat();
-                self.dora = str_to_pais(pais);
+                self.dora = (0..dora_array.len()).map(|idx| {
+                    let dora = dora_array.value(idx);
+                    PaiT{
+                        pai_num: (dora >> 2) as u8,
+                        id: (dora & 3) as u8,
+                        is_nakare: false,
+                        is_riichi: false,
+                        is_tsumogiri: false
+                    }
+                }).collect();
             }
 
-            if name == &String::from("machihai") {
-                let string_array = column.as_any().downcast_ref::<StringArray>().unwrap();
-                let cell = string_array.value(row_index);
+            if name == &String::from("machipai") {
+                let int_array = column.as_any().downcast_ref::<UInt32Array>().unwrap();
+                let cell = int_array.value(row_index);
 
-                let pais = str_to_pais(cell);
-
-                self.machihai = pais.first().unwrap().clone();
+                self.machipai = PaiT{
+                    pai_num: (cell >> 2) as u8,
+                    id: (cell & 3) as u8,
+                    is_nakare: false,
+                    is_riichi: false,
+                    is_tsumogiri: false
+                };
             }
 
-            if name == &String::from("uradora") {
+            if name == &String::from("uradora_orig") {
                 let string_array = column.as_any().downcast_ref::<ListArray>().unwrap();
                 let cell = string_array.value(row_index);
 
-                let dora_array = cell.as_any().downcast_ref::<StringArray>().unwrap();
+                let dora_array = cell.as_any().downcast_ref::<UInt32Array>().unwrap();
 
-                let pais = (0..dora_array.len()).map(|idx| String::from(dora_array.value(idx))).collect::<Vec<String>>().concat();
-                self.uradora = str_to_pais(pais);
+                self.uradora = (0..dora_array.len()).map(|idx| {
+                    let dora = dora_array.value(idx);
+                    PaiT{
+                        pai_num: (dora >> 2) as u8,
+                        id: (dora & 3) as u8,
+                        is_nakare: false,
+                        is_riichi: false,
+                        is_tsumogiri: false
+                    }
+                }).collect();
+            }
+
+            if name == &String::from("nukidora") {
+                let int_array = column.as_any().downcast_ref::<UInt32Array>().unwrap();
+                let cell = int_array.value(row_index);
+
+                self.nukidora = cell;
             }
         });
     }
@@ -181,7 +209,7 @@ impl ParquetAgari {
 
 
 
-pub fn load_pailist<P: AsRef<Path>>(path: P, row_index: usize) -> anyhow::Result<Vec<i32>>{
+pub fn load_pailist<P: AsRef<Path>>(path: P, row_index: usize) -> anyhow::Result<Vec<u32>>{
     let file = File::open(path)?;
     let builder = ParquetRecordBatchReaderBuilder::try_new(file)?;
     let mut reader = builder.build()?;
@@ -189,13 +217,13 @@ pub fn load_pailist<P: AsRef<Path>>(path: P, row_index: usize) -> anyhow::Result
 
     if let Some(arrow_result) = read_result {
         let record_batch = arrow_result?;
-        if let Some(column) = record_batch.column_by_name("hai_ids") {
+        if let Some(column) = record_batch.column_by_name("pai_ids") {
             let row_list = column.as_any().downcast_ref::<FixedSizeListArray>();
 
             if let Some(rows) = row_list {
                 ensure!(row_index < rows.len(), "row_index must be less than row length");
                 let cell = rows.value(row_index);
-                let ret = cell.as_any().downcast_ref::<Int32Array>();
+                let ret = cell.as_any().downcast_ref::<UInt32Array>();
 
                 if let Some(row) = ret {
                     let values = row.values().to_vec();

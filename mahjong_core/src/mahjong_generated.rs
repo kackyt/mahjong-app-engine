@@ -1859,10 +1859,10 @@ impl PlayerT {
 // struct GameState, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct GameState(pub [u8; 3096]);
+pub struct GameState(pub [u8; 3104]);
 impl Default for GameState { 
   fn default() -> Self { 
-    Self([0; 3096])
+    Self([0; 3104])
   }
 }
 impl core::fmt::Debug for GameState {
@@ -1878,6 +1878,8 @@ impl core::fmt::Debug for GameState {
       .field("teban", &self.teban())
       .field("taku", &self.taku())
       .field("taku_cursol", &self.taku_cursol())
+      .field("dora_len", &self.dora_len())
+      .field("uradora_len", &self.uradora_len())
       .finish()
   }
 }
@@ -1929,8 +1931,10 @@ impl<'a> GameState {
     teban: u32,
     taku: &Taku,
     taku_cursol: u32,
+    dora_len: u32,
+    uradora_len: u32,
   ) -> Self {
-    let mut s = Self([0; 3096]);
+    let mut s = Self([0; 3104]);
     s.set_title(title);
     s.set_players(players);
     s.set_player_len(player_len);
@@ -1941,6 +1945,8 @@ impl<'a> GameState {
     s.set_teban(teban);
     s.set_taku(taku);
     s.set_taku_cursol(taku_cursol);
+    s.set_dora_len(dora_len);
+    s.set_uradora_len(uradora_len);
     s
   }
 
@@ -2191,6 +2197,64 @@ impl<'a> GameState {
     }
   }
 
+  pub fn dora_len(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[3096..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_dora_len(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[3096..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
+  pub fn uradora_len(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[3100..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_uradora_len(&mut self, x: u32) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[3100..].as_mut_ptr(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
   pub fn unpack(&self) -> GameStateT {
     GameStateT {
       title: self.title().unpack(),
@@ -2203,6 +2267,8 @@ impl<'a> GameState {
       teban: self.teban(),
       taku: self.taku().unpack(),
       taku_cursol: self.taku_cursol(),
+      dora_len: self.dora_len(),
+      uradora_len: self.uradora_len(),
     }
   }
 }
@@ -2219,6 +2285,8 @@ pub struct GameStateT {
   pub teban: u32,
   pub taku: TakuT,
   pub taku_cursol: u32,
+  pub dora_len: u32,
+  pub uradora_len: u32,
 }
 impl GameStateT {
   pub fn pack(&self) -> GameState {
@@ -2233,6 +2301,8 @@ impl GameStateT {
       self.teban,
       &self.taku.pack(),
       self.taku_cursol,
+      self.dora_len,
+      self.uradora_len,
     )
   }
 }

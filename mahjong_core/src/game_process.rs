@@ -1,7 +1,10 @@
 use crate::{
     fbs_utils::TakuControl,
-    mahjong_generated::open_mahjong::{Taku, GameStateT, PlayerT, PaiT, ActionType, TakuT}, shanten::PaiState,
+    mahjong_generated::open_mahjong::{GameStateT, PlayerT, PaiT, ActionType, TakuT}, shanten::PaiState,
 };
+
+const DORA_START_INDEX : usize = 0;
+const URADORA_START_INDEX : usize = 5;
 
 impl GameStateT {
     pub fn create(&mut self, title: &[u8], player_len: u32) {
@@ -17,7 +20,7 @@ impl GameStateT {
         self.taku = TakuT::create_shuffled()
     }
 
-    pub fn load(&mut self, hai_ids: &Vec<i32>) {
+    pub fn load(&mut self, hai_ids: &Vec<u32>) {
         self.taku = TakuT::load(hai_ids);
     }
 
@@ -125,5 +128,27 @@ impl GameStateT {
             ActionType::ACTION_NAGASHI => todo!(),
             _ => Err(()),
         }
+    }
+
+    pub fn copy_dora(&mut self, dora: &Vec<PaiT>) {
+        self.dora_len = dora.len() as u32;
+        for (i, item) in dora.iter().enumerate() {
+            self.taku.n1[(DORA_START_INDEX + i) as usize] = item.clone();
+        }
+    }
+
+    pub fn copy_uradora(&mut self, uradora: &Vec<PaiT>) {
+        self.uradora_len = uradora.len() as u32;
+        for (i, item) in uradora.iter().enumerate() {
+            self.taku.n1[(URADORA_START_INDEX + i) as usize] = item.clone();
+        }
+    }
+
+    pub fn get_dora(&self) -> &[PaiT] {
+        &self.taku.n1[DORA_START_INDEX..(DORA_START_INDEX + self.dora_len as usize)]
+    }
+
+    pub fn get_uradora(&self) -> &[PaiT] {
+        &self.taku.n1[URADORA_START_INDEX..(URADORA_START_INDEX + self.uradora_len as usize)]
     }
 }

@@ -83,7 +83,9 @@ fn is_penchan(mentsu: &Mentsu) -> bool {
 
 
 pub trait AgariBehavior {
-    fn get_agari(&self, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>) -> AgariState;
+    fn get_agari(&self, who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>) -> AgariState;
+    fn get_condition_yaku(&self, who: usize) -> Vec<(String, i32)>;
+    fn get_dora_yaku(&self, who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>, nukidora: usize) -> Vec<(String, i32)>;
 }
 
 
@@ -127,8 +129,26 @@ pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Mentsu>>, p: &Pai) -> Vec<Vec<Mentsu
 }
 
 
+fn dora_pai_num(pai_num: u8) -> u8 {
+    // 北
+    if pai_num == 30 {
+        return 27;
+    }
+
+    // 中
+    if pai_num == 33 {
+        return 31;
+    }
+
+    if pai_num % 9 == 8 {
+        return pai_num - 8;
+    }
+
+    pai_num + 1
+}
+
 impl AgariBehavior for GameStateT {
-    fn get_agari(&self, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>) -> AgariState {
+    fn get_agari(&self, who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>) -> AgariState {
         let mut agari = AgariState {
             fu: 20,
             menzen: true,
@@ -429,8 +449,37 @@ impl AgariBehavior for GameStateT {
 
         agari
     }
-}
 
+    fn get_condition_yaku(&self, who: usize) -> Vec<(String, i32)> {
+        vec![]
+    }
+
+    fn get_dora_yaku(&self, _who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>, nukidora: usize) -> Vec<(String, i32)> {
+        let mut ret = Vec::new();
+        let dora_pais = self.get_dora();
+        let uradora_pais = self.get_uradora();
+
+        let dora_num = mentsu.iter().chain(fulo.iter()).flat_map(|m| {
+            m.pai_list().iter().map(|p| {
+                dora_pais.iter().filter(|d| dora_pai_num(d.pai_num) == p.pai_num()).count()
+            })
+        }).reduce(|acc, e| acc + e).unwrap_or(0) + nukidora;
+        let uradora_num = mentsu.iter().chain(fulo.iter()).flat_map(|m| {
+            m.pai_list().iter().map(|p| {
+                uradora_pais.iter().filter(|d| dora_pai_num(d.pai_num) == p.pai_num()).count()
+            })
+        }).reduce(|acc, e| acc + e).unwrap_or(0);
+
+        if dora_num > 0 {
+            ret.push(("ドラ".to_string(), dora_num as i32));
+        }
+
+        if uradora_num > 0 {
+            ret.push(("裏ドラ".to_string(), uradora_num as i32));
+        }
+        ret
+    }
+}
 
 
 const KAZE_STR: [char; 4] = ['東', '南', '西', '北'];

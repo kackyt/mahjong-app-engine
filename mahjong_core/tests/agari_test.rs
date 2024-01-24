@@ -161,21 +161,24 @@ mod tests {
     #[test]
     fn test_agari_ten() {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/agaris.parquet");
-        let game_state = GameStateT::default();
+        let mut game_state = GameStateT::default();
 
-        let ret = load_pailist::load_agari_tehai(path, 0);
+        let ret = load_pailist::load_agari_tehai(path, 1);
 
         assert!(ret.is_ok(), "成功");
 
         let parquet = ret.unwrap();
         println!("{:?}\r", parquet);
 
+        game_state.copy_dora(&parquet.dora);
+        game_state.copy_uradora(&parquet.uradora);
+
         // assert_eq!(parquet.tehai.len(), 14);
 
         let mut pai_state = PaiState::from(&parquet.tehai);
 
         let all_mentsu = all_of_mentsu(&mut pai_state, parquet.fulo.len());
-        let all_mentsu_w_machi = add_machi_to_mentsu(&all_mentsu, &parquet.machihai.pack());
+        let all_mentsu_w_machi = add_machi_to_mentsu(&all_mentsu, &parquet.machipai.pack());
 
         println!("{:?}\r", all_mentsu);
         println!("{:?}\r", all_mentsu_w_machi);
@@ -184,8 +187,11 @@ mod tests {
         println!("{:?}\r", mentsu);
 
 
-        let agari_state = game_state.get_agari(&mentsu, &parquet.fulo);
-        let yakus = agari_state.get_yaku_list();
+        let agari_state = game_state.get_agari(0, &mentsu, &parquet.fulo);
+
+        let mut yakus = game_state.get_condition_yaku(0);
+        yakus.extend(agari_state.get_yaku_list());
+        yakus.extend(game_state.get_dora_yaku(0, &mentsu, &parquet.fulo, parquet.nukidora as usize));
         let agari = agari_state.get_agari(&yakus);
 
         println!("{:?}\r", agari_state);
