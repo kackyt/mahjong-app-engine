@@ -24,12 +24,42 @@ impl GameStateT {
         self.taku = TakuT::load(hai_ids);
     }
 
+    pub fn next_cursol(&mut self) {
+        if self.is_duplicate_mode {
+            self.players[self.teban as usize].cursol += 1;
+        } else {
+            self.taku_cursol += 1;
+        }
+    }
+
+    pub fn get_zikaze(&self, who: usize) -> u32 {
+        let diff = (who as i32) - (self.oya as i32);
+
+        if diff < 0 {
+            (diff + self.player_len as i32) as u32
+        } else {
+            diff as u32
+        }
+    }
+
     pub fn start(&mut self) {
         // 配牌
+        self.taku_cursol = 14;
+        self.dora_len = 1;
+        self.uradora_len = 0;
+
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];
-            let cursol = self.taku_cursol as usize;
-            let r = self.taku.get_range(cursol..(cursol+13));
+            let cursol: &mut u32;
+
+            player.cursol = 14 + (idx * if idx < 2 { 31 } else { 30 });
+
+            if self.is_duplicate_mode {
+                cursol = &mut player.cursol;
+            } else {
+                cursol = &mut self.taku_cursol;
+            }
+            let r = self.taku.get_range((*cursol as usize)..(*cursol+13) as usize);
 
             if let Ok(mut v) = r {
                 v.sort_unstable();
@@ -39,7 +69,7 @@ impl GameStateT {
                 player.tehai_len = 13;
             }
 
-            self.taku_cursol += 13;
+            *cursol += 13;
         }
     }
 
@@ -50,8 +80,14 @@ impl GameStateT {
     pub fn tsumo(&mut self) -> Result<(), ()> {
         let player = &mut self.players[self.teban as usize];
         player.is_tsumo = true;
-        player.tsumohai = self.taku.get(self.taku_cursol as usize)?;
-        self.taku_cursol += 1;
+
+        if self.is_duplicate_mode {
+            player.tsumohai = self.taku.get(player.cursol as usize)?;
+        } else {
+            player.tsumohai = self.taku.get(self.taku_cursol as usize)?;
+        }
+
+        self.next_cursol();
 
         Ok(())
     }
@@ -98,7 +134,7 @@ impl GameStateT {
         }
     }
 
-    pub fn action(&mut self, action_type: ActionType, player_index: usize, param: u64) -> Result<(), ()> {
+    pub fn action(&mut self, action_type: ActionType, player_index: usize, param: u32) -> Result<(), ()> {
         match action_type {
             ActionType::ACTION_SYNC => {
                 if player_index == self.teban as usize {

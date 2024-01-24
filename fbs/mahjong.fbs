@@ -79,7 +79,7 @@ struct Player {
     is_riichi: bool;
     is_ippatsu: bool;
     score: int;
-    cursol: int;
+    cursol: uint;
 }
 
 struct GameState {
@@ -87,7 +87,7 @@ struct GameState {
     players: [Player: 4];
     player_len: uint;
     bakaze: uint = 0;
-    zikaze: uint = 0;
+    oya: uint = 0;
     tsumobou: uint = 0;
     riichibou: uint = 0;
     teban: uint = 0;
@@ -95,4 +95,5 @@ struct GameState {
     taku_cursol: uint;
     dora_len: uint;
     uradora_len: uint;
+    is_duplicate_mode: bool;
 }

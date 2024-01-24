@@ -40,7 +40,7 @@ pub unsafe extern "C" fn get_player_shanten(ptr: *mut GameStateT, player_index: 
 }
 
 #[no_mangle]
-pub unsafe extern "C" fn do_action(ptr: *mut GameStateT, action_type: u32, player_index: usize, param: u64) {
+pub unsafe extern "C" fn do_action(ptr: *mut GameStateT, action_type: u32, player_index: usize, param: u32) {
     let gamestate = ptr.as_mut().unwrap();
 
     let _ = gamestate.action(ActionType(action_type), player_index, param);

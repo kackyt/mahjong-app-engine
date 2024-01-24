@@ -168,7 +168,7 @@ impl AgariBehavior for GameStateT {
             tanki: false,
             pinfu: false,
             bakaze: self.bakaze,
-            zikaze: self.zikaze
+            zikaze: self.get_zikaze(who),
         };
 
         if fulo.len() > 0 {
@@ -188,7 +188,7 @@ impl AgariBehavior for GameStateT {
                         if (num % 7) == self.bakaze as u8 {
                             agari.fu += 2;
                         }
-                        if (num % 7) == self.zikaze as u8 {
+                        if (num % 7) == agari.zikaze as u8 {
                             agari.fu += 2;
                         }
                         if num >= 31 {

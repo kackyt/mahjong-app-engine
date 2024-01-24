@@ -1466,7 +1466,7 @@ impl<'a> Player {
     is_riichi: bool,
     is_ippatsu: bool,
     score: i32,
-    cursol: i32,
+    cursol: u32,
   ) -> Self {
     let mut s = Self([0; 532]);
     s.set_name(name);
@@ -1772,8 +1772,8 @@ impl<'a> Player {
     }
   }
 
-  pub fn cursol(&self) -> i32 {
-    let mut mem = core::mem::MaybeUninit::<<i32 as EndianScalar>::Scalar>::uninit();
+  pub fn cursol(&self) -> u32 {
+    let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid value in this slot
@@ -1781,13 +1781,13 @@ impl<'a> Player {
       core::ptr::copy_nonoverlapping(
         self.0[528..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
-        core::mem::size_of::<<i32 as EndianScalar>::Scalar>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
       mem.assume_init()
     })
   }
 
-  pub fn set_cursol(&mut self, x: i32) {
+  pub fn set_cursol(&mut self, x: u32) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -1796,7 +1796,7 @@ impl<'a> Player {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
         self.0[528..].as_mut_ptr(),
-        core::mem::size_of::<<i32 as EndianScalar>::Scalar>(),
+        core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
   }
@@ -1834,7 +1834,7 @@ pub struct PlayerT {
   pub is_riichi: bool,
   pub is_ippatsu: bool,
   pub score: i32,
-  pub cursol: i32,
+  pub cursol: u32,
 }
 impl PlayerT {
   pub fn pack(&self) -> Player {
@@ -1859,10 +1859,10 @@ impl PlayerT {
 // struct GameState, aligned to 4
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct GameState(pub [u8; 3104]);
+pub struct GameState(pub [u8; 3108]);
 impl Default for GameState { 
   fn default() -> Self { 
-    Self([0; 3104])
+    Self([0; 3108])
   }
 }
 impl core::fmt::Debug for GameState {
@@ -1872,7 +1872,7 @@ impl core::fmt::Debug for GameState {
       .field("players", &self.players())
       .field("player_len", &self.player_len())
       .field("bakaze", &self.bakaze())
-      .field("zikaze", &self.zikaze())
+      .field("oya", &self.oya())
       .field("tsumobou", &self.tsumobou())
       .field("riichibou", &self.riichibou())
       .field("teban", &self.teban())
@@ -1880,6 +1880,7 @@ impl core::fmt::Debug for GameState {
       .field("taku_cursol", &self.taku_cursol())
       .field("dora_len", &self.dora_len())
       .field("uradora_len", &self.uradora_len())
+      .field("is_duplicate_mode", &self.is_duplicate_mode())
       .finish()
   }
 }
@@ -1925,7 +1926,7 @@ impl<'a> GameState {
     players: &[Player; 4],
     player_len: u32,
     bakaze: u32,
-    zikaze: u32,
+    oya: u32,
     tsumobou: u32,
     riichibou: u32,
     teban: u32,
@@ -1933,13 +1934,14 @@ impl<'a> GameState {
     taku_cursol: u32,
     dora_len: u32,
     uradora_len: u32,
+    is_duplicate_mode: bool,
   ) -> Self {
-    let mut s = Self([0; 3104]);
+    let mut s = Self([0; 3108]);
     s.set_title(title);
     s.set_players(players);
     s.set_player_len(player_len);
     s.set_bakaze(bakaze);
-    s.set_zikaze(zikaze);
+    s.set_oya(oya);
     s.set_tsumobou(tsumobou);
     s.set_riichibou(riichibou);
     s.set_teban(teban);
@@ -1947,6 +1949,7 @@ impl<'a> GameState {
     s.set_taku_cursol(taku_cursol);
     s.set_dora_len(dora_len);
     s.set_uradora_len(uradora_len);
+    s.set_is_duplicate_mode(is_duplicate_mode);
     s
   }
 
@@ -2040,7 +2043,7 @@ impl<'a> GameState {
     }
   }
 
-  pub fn zikaze(&self) -> u32 {
+  pub fn oya(&self) -> u32 {
     let mut mem = core::mem::MaybeUninit::<<u32 as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
@@ -2055,7 +2058,7 @@ impl<'a> GameState {
     })
   }
 
-  pub fn set_zikaze(&mut self, x: u32) {
+  pub fn set_oya(&mut self, x: u32) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -2255,13 +2258,42 @@ impl<'a> GameState {
     }
   }
 
+  pub fn is_duplicate_mode(&self) -> bool {
+    let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    EndianScalar::from_little_endian(unsafe {
+      core::ptr::copy_nonoverlapping(
+        self.0[3104..].as_ptr(),
+        mem.as_mut_ptr() as *mut u8,
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+      mem.assume_init()
+    })
+  }
+
+  pub fn set_is_duplicate_mode(&mut self, x: bool) {
+    let x_le = x.to_little_endian();
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid value in this slot
+    unsafe {
+      core::ptr::copy_nonoverlapping(
+        &x_le as *const _ as *const u8,
+        self.0[3104..].as_mut_ptr(),
+        core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
+      );
+    }
+  }
+
   pub fn unpack(&self) -> GameStateT {
     GameStateT {
       title: self.title().unpack(),
       players: { let players = self.players(); flatbuffers::array_init(|i| players.get(i).unpack()) },
       player_len: self.player_len(),
       bakaze: self.bakaze(),
-      zikaze: self.zikaze(),
+      oya: self.oya(),
       tsumobou: self.tsumobou(),
       riichibou: self.riichibou(),
       teban: self.teban(),
@@ -2269,6 +2301,7 @@ impl<'a> GameState {
       taku_cursol: self.taku_cursol(),
       dora_len: self.dora_len(),
       uradora_len: self.uradora_len(),
+      is_duplicate_mode: self.is_duplicate_mode(),
     }
   }
 }
@@ -2279,7 +2312,7 @@ pub struct GameStateT {
   pub players: [PlayerT; 4],
   pub player_len: u32,
   pub bakaze: u32,
-  pub zikaze: u32,
+  pub oya: u32,
   pub tsumobou: u32,
   pub riichibou: u32,
   pub teban: u32,
@@ -2287,6 +2320,7 @@ pub struct GameStateT {
   pub taku_cursol: u32,
   pub dora_len: u32,
   pub uradora_len: u32,
+  pub is_duplicate_mode: bool,
 }
 impl GameStateT {
   pub fn pack(&self) -> GameState {
@@ -2295,7 +2329,7 @@ impl GameStateT {
       &flatbuffers::array_init(|i| self.players[i].pack()),
       self.player_len,
       self.bakaze,
-      self.zikaze,
+      self.oya,
       self.tsumobou,
       self.riichibou,
       self.teban,
@@ -2303,6 +2337,7 @@ impl GameStateT {
       self.taku_cursol,
       self.dora_len,
       self.uradora_len,
+      self.is_duplicate_mode,
     )
   }
 }

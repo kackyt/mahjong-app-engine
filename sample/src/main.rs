@@ -24,7 +24,7 @@ fn hai_to_str(p: &PaiT) -> String {
     format!("{}{}", colors[suit], num % 9)
 }
 
-fn cmd() -> anyhow::Result<u64> {
+fn cmd() -> anyhow::Result<u32> {
     loop {
         match read()? {
             Event::Key(event) => {
@@ -47,7 +47,7 @@ fn cmd() -> anyhow::Result<u64> {
                         }
 
                         if c >= '1' && c <= '9' {
-                            return Ok(c as u64 - '1' as u64);
+                            return Ok(c as u32 - '1' as u32);
                         }
 
                         ensure!(false, "{} unknown code", c);
