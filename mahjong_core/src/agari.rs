@@ -197,7 +197,7 @@ impl AgariBehavior for GameStateT {
     
                         agari.n_zihai += 1;
                         agari.n_yaochu += 1;
-                        agari.toitsu.z[(num % 7) as usize] += 1;
+                        agari.toitsu.z[(num - 27) as usize] += 1;
                     } else if num >= 18 {
                         agari.toitsu.s[(num % 9) as usize] += 1;
                     } else if num >= 9 {
@@ -221,7 +221,7 @@ impl AgariBehavior for GameStateT {
                         fu *= 2;
                         agari.n_zihai += 1;
                         agari.n_yaochu += 1;
-                        agari.koutsu.z[(num % 7) as usize] += 1;
+                        agari.koutsu.z[(num - 27) as usize] += 1;
                     } else if num >= 18 {
                         // 索子
                         if num == 18 || num == 26 {
@@ -297,7 +297,7 @@ impl AgariBehavior for GameStateT {
                         fu *= 2;
                         agari.n_zihai += 1;
                         agari.n_yaochu += 1;
-                        agari.koutsu.z[(num % 7) as usize] += 1;
+                        agari.koutsu.z[(num - 27) as usize] += 1;
                     } else if num >= 18 {
                         // 索子
                         if num == 18 || num == 26 {
@@ -333,7 +333,7 @@ impl AgariBehavior for GameStateT {
                         fu *= 2;
                         agari.n_zihai += 1;
                         agari.n_yaochu += 1;
-                        agari.koutsu.z[(num % 7) as usize] += 1;
+                        agari.koutsu.z[(num - 27) as usize] += 1;
                     } else if num >= 18 {
                         // 索子
                         if num == 18 || num == 26 {
@@ -370,7 +370,7 @@ impl AgariBehavior for GameStateT {
                         fu *= 2;
                         agari.n_zihai += 1;
                         agari.n_yaochu += 1;
-                        agari.koutsu.z[(num % 7) as usize] += 1;
+                        agari.koutsu.z[(num - 27) as usize] += 1;
                     } else if num >= 18 {
                         // 索子
                         if num == 18 || num == 26 {
@@ -460,12 +460,12 @@ impl AgariBehavior for GameStateT {
         let uradora_pais = self.get_uradora();
 
         let dora_num = mentsu.iter().chain(fulo.iter()).flat_map(|m| {
-            m.pai_list().iter().map(|p| {
+            m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
                 dora_pais.iter().filter(|d| dora_pai_num(d.pai_num) == p.pai_num()).count()
             })
         }).reduce(|acc, e| acc + e).unwrap_or(0) + nukidora;
         let uradora_num = mentsu.iter().chain(fulo.iter()).flat_map(|m| {
-            m.pai_list().iter().map(|p| {
+            m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
                 uradora_pais.iter().filter(|d| dora_pai_num(d.pai_num) == p.pai_num()).count()
             })
         }).reduce(|acc, e| acc + e).unwrap_or(0);

@@ -6,7 +6,7 @@ mod load_pailist_test {
 
     #[test]
     fn test_load_pailist() {
-        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/haiyamas-random.parquet");
+        let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/paiyamas-random.parquet");
 
         let ret = load_pailist::load_pailist(path, 0);
 
@@ -19,7 +19,7 @@ mod load_pailist_test {
     fn test_load_agari_tehai() {
         let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/data/agaris.parquet");
 
-        let ret = load_pailist::load_agari_tehai(path, 3);
+        let ret = load_pailist::load_agari_tehai(path, 5);
 
         assert!(ret.is_ok(), "成功");
 
