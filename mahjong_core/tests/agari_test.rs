@@ -172,9 +172,9 @@ mod tests {
 
         // assert_eq!(parquet.tehai.len(), 14);
 
-        let mut pai_state = PaiState::from_with_fulo(&parquet.tehai, &parquet.fulo);
+        let mut pai_state = PaiState::from(&parquet.tehai);
 
-        let all_mentsu = all_of_mentsu(&mut pai_state);
+        let all_mentsu = all_of_mentsu(&mut pai_state, parquet.fulo.len());
         let all_mentsu_w_machi = add_machi_to_mentsu(&all_mentsu, &parquet.machihai.pack());
 
         println!("{:?}\r", all_mentsu);

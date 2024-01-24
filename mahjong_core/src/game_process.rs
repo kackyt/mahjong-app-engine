@@ -88,7 +88,7 @@ impl GameStateT {
         let mut state = PaiState::from(&tehai);
 
         // 上がり判定
-        if state.get_shanten() == -1 {
+        if state.get_shanten(0) == -1 {
             Ok(())
         } else {
             Err(())

@@ -36,7 +36,7 @@ pub unsafe extern "C" fn get_player_shanten(ptr: *mut GameStateT, player_index: 
         tehai.push(player.tsumohai)
     }
 
-    PaiState::from(&tehai).get_shanten()
+    PaiState::from(&tehai).get_shanten(0)
 }
 
 #[no_mangle]

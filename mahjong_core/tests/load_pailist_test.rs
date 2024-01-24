@@ -29,7 +29,7 @@ mod load_pailist_test {
 
         let mut pai_state = PaiState::from(&parquet.tehai);
 
-        let all_mentsu = all_of_mentsu(&mut pai_state);
+        let all_mentsu = all_of_mentsu(&mut pai_state, 0);
 
         println!("{:?}\r", parquet);
 

@@ -8,8 +8,6 @@ pub struct PaiState {
     pub hai_count_p: [i32; 9],
     pub hai_count_s: [i32; 9],
     pub hai_count_z: [i32; 7],
-    pub fulo: Vec<Mentsu>,
-    pub num_dora: i32,
 }
 
 pub fn shanten(mut n_mentsu: i32, mut n_tahtsu: i32, mut n_koritsu: i32, b_atama: bool) -> i32 {
@@ -196,8 +194,7 @@ fn all_of_mentsu_without_atama(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
     }).collect::<Vec<Vec<Mentsu>>>()
 }
 
-pub fn all_of_mentsu(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
-    let fulo_len = pai_state.fulo.len();
+pub fn all_of_mentsu(pai_state: &mut PaiState, n_fulo: usize) -> Vec<Vec<Mentsu>> {
     let mut all_mentsu: Vec<Vec<Mentsu>> = vec![];
     for n in 0..9 {
         if pai_state.hai_count_m[n] >= 2 {
@@ -269,7 +266,7 @@ pub fn all_of_mentsu(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
         }
     }
     all_mentsu.into_iter().filter(|x| {
-        x.len() + fulo_len >= 5
+        x.len() + n_fulo >= 5
     }).collect::<Vec<Vec<Mentsu>>>()
 }
 
@@ -297,18 +294,10 @@ impl PaiState {
             hai_count_p,
             hai_count_s,
             hai_count_z,
-            fulo: vec![],
-            num_dora: 0,
         }
     }
-    pub fn from_with_fulo(value: &Vec<PaiT>, fulo: &Vec<Mentsu>) -> Self {
-        let mut state = PaiState::from(value);
 
-        state.fulo = fulo.clone();
-        state
-    }
-
-    fn get_shanten_case(&mut self, b_atama: bool) -> i32 {
+    fn get_shanten_case(&mut self, b_atama: bool, n_fulo: usize) -> i32 {
         let m = mentsu_count(&mut self.hai_count_m, 0);
         let p = mentsu_count(&mut self.hai_count_p, 0);
         let s = mentsu_count(&mut self.hai_count_s, 0);
@@ -324,13 +313,11 @@ impl PaiState {
             }
         }
 
-        let n_fulo = self.fulo.len() as i32;
-
         let mut min_shanten = 13;
 
         for (manzu, pinzu, souzu) in iproduct!(&m, &p, &s) {
             let x = (
-                n_fulo + manzu.0 + pinzu.0 + souzu.0 + z.0,
+                (n_fulo as i32) + manzu.0 + pinzu.0 + souzu.0 + z.0,
                 manzu.1 + pinzu.1 + souzu.1 + z.1,
                 manzu.2 + pinzu.2 + souzu.2 + z.2,
             );
@@ -341,24 +328,24 @@ impl PaiState {
         min_shanten
     }
 
-    pub fn get_shanten(&mut self) -> i32 {
-        let mut min_shanten = self.get_shanten_case(false);
+    pub fn get_shanten(&mut self, n_fulo: usize) -> i32 {
+        let mut min_shanten = self.get_shanten_case(false, n_fulo);
 
         // 可能な雀頭を抜き取り、雀頭ありの場合のシャンテン数を計算する
         for n in 0..9 {
             if self.hai_count_m[n] >= 2 {
                 self.hai_count_m[n] -= 2;
-                min_shanten = min_shanten.min(self.get_shanten_case(true));
+                min_shanten = min_shanten.min(self.get_shanten_case(true, n_fulo));
                 self.hai_count_m[n] += 2;
             }
             if self.hai_count_p[n] >= 2 {
                 self.hai_count_p[n] -= 2;
-                min_shanten = min_shanten.min(self.get_shanten_case(true));
+                min_shanten = min_shanten.min(self.get_shanten_case(true, n_fulo));
                 self.hai_count_p[n] += 2;
             }
             if self.hai_count_s[n] >= 2 {
                 self.hai_count_s[n] -= 2;
-                min_shanten = min_shanten.min(self.get_shanten_case(true));
+                min_shanten = min_shanten.min(self.get_shanten_case(true, n_fulo));
                 self.hai_count_s[n] += 2;
             }
         }
@@ -366,7 +353,7 @@ impl PaiState {
         for n in 0..7 {
             if self.hai_count_z[n] >= 2 {
                 self.hai_count_z[n] -= 2;
-                min_shanten = min_shanten.min(self.get_shanten_case(true));
+                min_shanten = min_shanten.min(self.get_shanten_case(true, n_fulo));
                 self.hai_count_z[n] += 2;
             }
         }
