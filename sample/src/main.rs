@@ -3,7 +3,7 @@ use std::ffi::CString;
 use clap::Parser;
 use anyhow::ensure;
 use crossterm::{terminal::{enable_raw_mode, disable_raw_mode}, event::{Event, KeyCode, read}};
-use mahjong_core::{mahjong_generated::open_mahjong::{GameStateT, PaiT, ActionType}, load_pailist::load_pailist};
+use mahjong_core::{load_pailist::load_pailist, mahjong_generated::open_mahjong::{GameStateT, PaiT, ActionType}, shanten::PaiState};
 
 #[derive(Parser, Debug)]
 #[command(author, about, version)]
@@ -12,16 +12,6 @@ struct Command {
     pai_list_file: Option<String>,
     #[arg(short, long, default_value_t=0)]
     index: usize
-}
-
-fn hai_to_str(p: &PaiT) -> String {
-    let colors = ["m", "p", "s", "z"];
-
-    let num = p.pai_num;
-
-    let suit = (num / 9) as usize;
-
-    format!("{}{}", colors[suit], num % 9)
 }
 
 fn cmd() -> anyhow::Result<u32> {
@@ -92,12 +82,18 @@ fn main() -> anyhow::Result<()> {
         let player = game_state.get_player(0);
 
         player.tehai.iter().enumerate().for_each(|(idx, p)| {
-            print!("{}[{}] ", hai_to_str(p), keys[idx]);
+            print!("{}[{}] ", p, keys[idx]);
         });
         if player.is_tsumo {
             print!("{}[BS]", player.tsumohai);
         }
-        println!("\r");
+
+        // シャンテン数を計算
+        let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
+        tehai.push(player.tsumohai);
+
+        let shanten = PaiState::from(&tehai).get_shanten(0);
+        println!(" シャンテン数 {}\r", shanten);
 
         let command = cmd();
 

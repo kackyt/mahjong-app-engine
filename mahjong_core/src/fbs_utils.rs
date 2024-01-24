@@ -6,16 +6,13 @@ use rand::prelude::SliceRandom;
 // 牌の表示
 impl Display for PaiT {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let num = self.pai_num % 9 + 1;
-        if self.pai_num < 9 {
-            write!(f, "m{}", num)
-        } else if self.pai_num < 18 {
-            write!(f, "p{}", num)
-        } else if self.pai_num < 27 {
-            write!(f, "s{}", num)
-        } else {
-            write!(f, "z{}", num)
-        }
+        let colors = ["m", "p", "s", "z"];
+
+        let num = self.pai_num;
+    
+        let suit = (num / 9) as usize;
+    
+        write!(f, "{}{}", colors[suit], (num % 9) + 1)
     }
 }
 
