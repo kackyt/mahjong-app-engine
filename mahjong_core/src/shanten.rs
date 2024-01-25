@@ -271,7 +271,7 @@ pub fn all_of_mentsu(pai_state: &mut PaiState, n_fulo: usize) -> Vec<Vec<Mentsu>
 }
 
 impl PaiState {
-    pub fn from(value: &Vec<PaiT>) -> Self {
+    pub fn from(value: &[PaiT]) -> Self {
         let mut hai_count_m: [i32; 9] = [0; 9];
         let mut hai_count_p: [i32; 9] = [0; 9];
         let mut hai_count_s: [i32; 9] = [0; 9];
