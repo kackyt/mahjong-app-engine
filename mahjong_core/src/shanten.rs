@@ -152,7 +152,7 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
         }).collect();
     }
 
-    println!("s{} {}: {:?} {:?}\r", suit, n, shuntsu, koutsu);
+    // println!("s{} {}: {:?} {:?}\r", suit, n, shuntsu, koutsu);
 
     if shuntsu.len() == 0 && koutsu.len() == 0 {
         vec![vec![]]

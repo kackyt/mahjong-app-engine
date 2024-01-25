@@ -43,6 +43,16 @@ impl GameStateT {
         }
     }
 
+    pub fn remain(&self) -> u32 {
+        if self.is_non_duplicate {
+            136 - self.taku_cursol
+        } else {
+            let start_of_yama = [14, 45, 75, 105];
+            136 - 14 - self.players[0..self.player_len as usize].iter().enumerate().map(
+                |(idx, x)| x.cursol - start_of_yama[idx]).sum::<u32>()
+        }
+    }
+
     pub fn start(&mut self) {
         // 配牌
         self.taku_cursol = 14;
