@@ -168,7 +168,6 @@ mod tests {
         assert!(ret.is_ok(), "成功");
 
         let parquet = ret.unwrap();
-        println!("{:?}\r", parquet);
 
         game_state.copy_dora(&parquet.dora);
         game_state.copy_uradora(&parquet.uradora);
@@ -180,12 +179,7 @@ mod tests {
         let all_mentsu = all_of_mentsu(&mut pai_state, parquet.fulo.len());
         let all_mentsu_w_machi = add_machi_to_mentsu(&all_mentsu, &parquet.machipai.pack());
 
-        println!("{:?}\r", all_mentsu);
-        println!("{:?}\r", all_mentsu_w_machi);
-
         let agari = game_state.get_best_agari(0, &all_mentsu_w_machi, &parquet.fulo, parquet.nukidora as usize).unwrap();
-
-        println!("{:?}\r", agari);
 
         assert_eq!(agari.fu, parquet.fu);
         assert_eq!(agari.han, parquet.han);

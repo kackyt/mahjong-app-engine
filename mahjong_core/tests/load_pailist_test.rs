@@ -29,9 +29,7 @@ mod load_pailist_test {
 
         let mut pai_state = PaiState::from(&parquet.tehai);
 
-        let all_mentsu = all_of_mentsu(&mut pai_state, 0);
-
-        println!("{:?}\r", parquet);
+        let all_mentsu = all_of_mentsu(&mut pai_state, parquet.fulo.len());
 
         assert_eq!(all_mentsu[0].len(), 5);
     }
