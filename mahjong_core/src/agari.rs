@@ -49,11 +49,7 @@ pub struct Agari {
 
 
 fn is_tanki(mentsu: &Mentsu) -> bool {
-    if mentsu.pai_list().iter().any(|x| x.flag() == MentsuFlag::FLAG_AGARI) {
-        return true;
-    }
-
-    false
+    mentsu.pai_list().iter().any(|x| x.flag() == MentsuFlag::FLAG_AGARI)
 }
 
 fn is_kanchan(mentsu: &Mentsu) -> bool {
