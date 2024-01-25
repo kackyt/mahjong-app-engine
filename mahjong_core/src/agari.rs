@@ -1,6 +1,5 @@
 use crate::mahjong_generated::open_mahjong::{Mentsu, Pai, MentsuFlag, GameStateT, MentsuType};
 
-
 #[derive(Default, Debug)]
 pub struct Shuntsu {
     m: [i32; 9],
@@ -86,6 +85,7 @@ pub trait AgariBehavior {
     fn get_agari(&self, who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>) -> AgariState;
     fn get_condition_yaku(&self, who: usize) -> Vec<(String, i32)>;
     fn get_dora_yaku(&self, who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>, nukidora: usize) -> Vec<(String, i32)>;
+    fn get_best_agari(&self, who: usize, mentsu: &Vec<Vec<Mentsu>>, fulo: &Vec<Mentsu>, nukidora: usize) -> anyhow::Result<Agari>;
 }
 
 
@@ -478,6 +478,22 @@ impl AgariBehavior for GameStateT {
             ret.push(("裏ドラ".to_string(), uradora_num as i32));
         }
         ret
+    }
+
+    fn get_best_agari(&self, who: usize, mentsu: &Vec<Vec<Mentsu>>, fulo: &Vec<Mentsu>, nukidora: usize) -> anyhow::Result<Agari> {
+        let ret = mentsu.iter().map(|m| {
+            let agari = self.get_agari(who, m, fulo);
+            let mut yakus = self.get_condition_yaku(who);
+            yakus.extend(agari.get_yaku_list());
+            yakus.extend(self.get_dora_yaku(who, m, fulo, nukidora));
+            agari.get_agari(&yakus)
+        }).max_by_key(|x| x.score);
+
+        if let Some(x) = ret {
+            Ok(x)
+        } else {
+            Err(anyhow::anyhow!("No Agari"))
+        }
     }
 }
 

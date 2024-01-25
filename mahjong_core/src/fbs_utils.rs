@@ -1,6 +1,7 @@
-use std::{ops::Range, fmt::Display};
+use std::{any, fmt::Display, ops::Range};
 
 use crate::mahjong_generated::open_mahjong::{Taku, TakuT, FixedString, FixedStringT, Pai, PaiT};
+use anyhow::ensure;
 use rand::prelude::SliceRandom;
 
 // 牌の表示
@@ -154,9 +155,9 @@ impl Into<Vec<u8>> for FixedString {
 pub trait TakuControl {
     fn load(list: &Vec<u32>) -> Self;
     fn create_shuffled() -> Self;
-    fn search(&self, target: &PaiT) -> Result<usize, ()>;
-    fn get(&self, index: usize) -> Result<PaiT, ()>;
-    fn get_range(&self, r: Range<usize>) -> Result<Vec<PaiT>, ()>;
+    fn search(&self, target: &PaiT) -> anyhow::Result<usize>;
+    fn get(&self, index: usize) -> anyhow::Result<PaiT>;
+    fn get_range(&self, r: Range<usize>) -> anyhow::Result<Vec<PaiT>>;
 }
 
 impl TakuControl for Taku {
@@ -194,15 +195,15 @@ impl TakuControl for Taku {
         s
     }
 
-    fn search(&self, target: &PaiT) -> Result<usize, ()> {
+    fn search(&self, target: &PaiT) -> anyhow::Result<usize> {
         self.unpack().search(target)
     }
 
-    fn get(&self, index: usize) -> Result<PaiT, ()> {
+    fn get(&self, index: usize) -> anyhow::Result<PaiT> {
         self.unpack().get(index)
     }
 
-    fn get_range(&self, r: Range<usize>) -> Result<Vec<PaiT>, ()> {
+    fn get_range(&self, r: Range<usize>) -> anyhow::Result<Vec<PaiT>> {
         self.unpack().get_range(r)
     }
 
@@ -239,7 +240,7 @@ impl TakuControl for TakuT {
         Taku::create_shuffled().unpack()
     }
 
-    fn search(&self, target: &PaiT) -> Result<usize, ()> {
+    fn search(&self, target: &PaiT) -> anyhow::Result<usize> {
         if let Some(idx) = self.n1.iter().position(|item| item == target) {
             return Ok(idx);
         }
@@ -255,10 +256,10 @@ impl TakuControl for TakuT {
         if let Some(idx) = self.n5.iter().position(|item| item == target) {
             return Ok(idx + 128);
         }
-        Err(())
+        Err(anyhow::anyhow!("not found"))
     }
 
-    fn get(&self, index: usize) -> Result<PaiT, ()> {
+    fn get(&self, index: usize) -> anyhow::Result<PaiT> {
         if index < 32 {
             return Ok(self.n1[index].clone());
         }
@@ -275,14 +276,12 @@ impl TakuControl for TakuT {
             return Ok(self.n5[index - 128].clone());
         }
 
-        Err(())
+        Err(anyhow::anyhow!("index out of range"))
     }
 
-    fn get_range(&self, r: Range<usize>) -> Result<Vec<PaiT>, ()> {
+    fn get_range(&self, r: Range<usize>) -> anyhow::Result<Vec<PaiT>> {
         // range check
-        if r.end >= self.length as usize {
-            return Err(())
-        }
+        ensure!(r.end < self.length as usize, "range out of range");
         let st = (r.start / 32, r.start % 32);
         let ed = (r.end / 32, r.end % 32);
         let mut v: Vec<PaiT> = Vec::new();

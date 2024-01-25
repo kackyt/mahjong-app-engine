@@ -1,6 +1,7 @@
+use anyhow::{anyhow, ensure};
+
 use crate::{
-    fbs_utils::TakuControl,
-    mahjong_generated::open_mahjong::{GameStateT, PlayerT, PaiT, ActionType, TakuT}, shanten::PaiState,
+    agari::{add_machi_to_mentsu, AgariBehavior}, fbs_utils::TakuControl, mahjong_generated::open_mahjong::{GameStateT, PlayerT, PaiT, ActionType, TakuT}, shanten::{all_of_mentsu, PaiState}
 };
 
 const DORA_START_INDEX : usize = 0;
@@ -77,7 +78,7 @@ impl GameStateT {
         self.players[index].clone()
     }
 
-    pub fn tsumo(&mut self) -> Result<(), ()> {
+    pub fn tsumo(&mut self) -> anyhow::Result<()> {
         let player = &mut self.players[self.teban as usize];
         player.is_tsumo = true;
 
@@ -118,23 +119,29 @@ impl GameStateT {
         }
     }
 
-    pub fn tsumo_agari(&mut self) -> Result<(), ()> {
-        let player = &mut self.players[self.teban as usize];
+    pub fn tsumo_agari(&mut self) -> anyhow::Result<()> {
+        let player = &self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
 
         tehai.push(player.tsumohai.clone());
 
         let mut state = PaiState::from(&tehai);
 
-        // 上がり判定
-        if state.get_shanten(0) == -1 {
-            Ok(())
-        } else {
-            Err(())
-        }
+        let all_mentsu = all_of_mentsu(&mut state, 0);
+        let all_mentsu_w_machi = add_machi_to_mentsu(&all_mentsu, &player.tsumohai.pack());
+
+        ensure!(all_mentsu_w_machi.len() > 0, "チョンボ！");
+
+        let best_agari = self.get_best_agari(self.teban as usize, &all_mentsu_w_machi, &Vec::new(), 0)?;
+
+        println!("{} {} {}", best_agari.han, best_agari.fu, best_agari.score);
+
+        self.players[self.teban as usize].score += best_agari.score;
+
+        Ok(())
     }
 
-    pub fn action(&mut self, action_type: ActionType, player_index: usize, param: u32) -> Result<(), ()> {
+    pub fn action(&mut self, action_type: ActionType, player_index: usize, param: u32) -> anyhow::Result<()> {
         match action_type {
             ActionType::ACTION_SYNC => {
                 if player_index == self.teban as usize {
@@ -148,7 +155,7 @@ impl GameStateT {
                     self.sutehai(param as usize);
                     Ok(())
                 } else {
-                    Err(())
+                    Err(anyhow!("not teban"))
                 }
             },
             ActionType::ACTION_CHII => todo!(),
@@ -158,11 +165,11 @@ impl GameStateT {
                 if player_index == self.teban as usize {
                     self.tsumo_agari()
                 } else {
-                    Err(())
+                    Err(anyhow!("not teban"))
                 }
             },
             ActionType::ACTION_NAGASHI => todo!(),
-            _ => Err(()),
+            _ => todo!(),
         }
     }
 

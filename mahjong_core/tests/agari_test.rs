@@ -183,20 +183,9 @@ mod tests {
         println!("{:?}\r", all_mentsu);
         println!("{:?}\r", all_mentsu_w_machi);
 
-        let mentsu = all_mentsu_w_machi[0].clone();
-        println!("{:?}\r", mentsu);
+        let agari = game_state.get_best_agari(0, &all_mentsu_w_machi, &parquet.fulo, parquet.nukidora as usize).unwrap();
 
-
-        let agari_state = game_state.get_agari(0, &mentsu, &parquet.fulo);
-
-        let mut yakus = game_state.get_condition_yaku(0);
-        yakus.extend(agari_state.get_yaku_list());
-        yakus.extend(game_state.get_dora_yaku(0, &mentsu, &parquet.fulo, parquet.nukidora as usize));
-        let agari = agari_state.get_agari(&yakus);
-
-        println!("{:?}\r", agari_state);
         println!("{:?}\r", agari);
-        println!("{:?}\r", yakus);
 
         assert_eq!(agari.fu, parquet.fu);
         assert_eq!(agari.han, parquet.han);
