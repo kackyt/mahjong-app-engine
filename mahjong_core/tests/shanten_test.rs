@@ -49,7 +49,7 @@ fn calc_hon_shanten_test() -> Result<(), Error> {
         let mut state = PaiState::from(&case.0);
         println!("case {}", lines);
 
-        assert_eq!(state.get_shanten(), case.1);
+        assert_eq!(state.get_shanten(0), case.1);
         lines += 1;
     }
 
@@ -64,9 +64,8 @@ fn calc_koku_shanten_test() -> Result<(), Error> {
 
     for case in case1 {
         let mut state = PaiState::from(&case.0);
-        println!("case {}", lines);
 
-        assert_eq!(state.get_shanten(), case.1);
+        assert_eq!(state.get_shanten(0), case.1);
         lines += 1;
     }
 
@@ -81,9 +80,8 @@ fn calc_normal_shanten_test() -> Result<(), Error> {
 
     for case in case1 {
         let mut state = PaiState::from(&case.0);
-        println!("case {}", lines);
 
-        assert_eq!(state.get_shanten(), case.1);
+        assert_eq!(state.get_shanten(0), case.1);
         lines += 1;
     }
 
@@ -98,9 +96,8 @@ fn calc_tin_shanten_test() -> Result<(), Error> {
 
     for case in case1 {
         let mut state = PaiState::from(&case.0);
-        println!("case {}", lines);
 
-        assert_eq!(state.get_shanten(), case.1);
+        assert_eq!(state.get_shanten(0), case.1);
         lines += 1;
     }
 
