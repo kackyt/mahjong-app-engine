@@ -26,10 +26,10 @@ impl GameStateT {
     }
 
     pub fn next_cursol(&mut self) {
-        if self.is_duplicate_mode {
-            self.players[self.teban as usize].cursol += 1;
-        } else {
+        if self.is_non_duplicate {
             self.taku_cursol += 1;
+        } else {
+            self.players[self.teban as usize].cursol += 1;
         }
     }
 
@@ -55,10 +55,10 @@ impl GameStateT {
 
             player.cursol = 14 + (idx * if idx < 2 { 31 } else { 30 });
 
-            if self.is_duplicate_mode {
-                cursol = &mut player.cursol;
-            } else {
+            if self.is_non_duplicate {
                 cursol = &mut self.taku_cursol;
+            } else {
+                cursol = &mut player.cursol;
             }
             let r = self.taku.get_range((*cursol as usize)..(*cursol+13) as usize);
 
@@ -82,10 +82,10 @@ impl GameStateT {
         let player = &mut self.players[self.teban as usize];
         player.is_tsumo = true;
 
-        if self.is_duplicate_mode {
-            player.tsumohai = self.taku.get(player.cursol as usize)?;
-        } else {
+        if self.is_non_duplicate {
             player.tsumohai = self.taku.get(self.taku_cursol as usize)?;
+        } else {
+            player.tsumohai = self.taku.get(player.cursol as usize)?;
         }
 
         self.next_cursol();

@@ -1880,7 +1880,7 @@ impl core::fmt::Debug for GameState {
       .field("taku_cursol", &self.taku_cursol())
       .field("dora_len", &self.dora_len())
       .field("uradora_len", &self.uradora_len())
-      .field("is_duplicate_mode", &self.is_duplicate_mode())
+      .field("is_non_duplicate", &self.is_non_duplicate())
       .finish()
   }
 }
@@ -1934,7 +1934,7 @@ impl<'a> GameState {
     taku_cursol: u32,
     dora_len: u32,
     uradora_len: u32,
-    is_duplicate_mode: bool,
+    is_non_duplicate: bool,
   ) -> Self {
     let mut s = Self([0; 3108]);
     s.set_title(title);
@@ -1949,7 +1949,7 @@ impl<'a> GameState {
     s.set_taku_cursol(taku_cursol);
     s.set_dora_len(dora_len);
     s.set_uradora_len(uradora_len);
-    s.set_is_duplicate_mode(is_duplicate_mode);
+    s.set_is_non_duplicate(is_non_duplicate);
     s
   }
 
@@ -2258,7 +2258,7 @@ impl<'a> GameState {
     }
   }
 
-  pub fn is_duplicate_mode(&self) -> bool {
+  pub fn is_non_duplicate(&self) -> bool {
     let mut mem = core::mem::MaybeUninit::<<bool as EndianScalar>::Scalar>::uninit();
     // Safety:
     // Created from a valid Table for this object
@@ -2273,7 +2273,7 @@ impl<'a> GameState {
     })
   }
 
-  pub fn set_is_duplicate_mode(&mut self, x: bool) {
+  pub fn set_is_non_duplicate(&mut self, x: bool) {
     let x_le = x.to_little_endian();
     // Safety:
     // Created from a valid Table for this object
@@ -2301,7 +2301,7 @@ impl<'a> GameState {
       taku_cursol: self.taku_cursol(),
       dora_len: self.dora_len(),
       uradora_len: self.uradora_len(),
-      is_duplicate_mode: self.is_duplicate_mode(),
+      is_non_duplicate: self.is_non_duplicate(),
     }
   }
 }
@@ -2320,7 +2320,7 @@ pub struct GameStateT {
   pub taku_cursol: u32,
   pub dora_len: u32,
   pub uradora_len: u32,
-  pub is_duplicate_mode: bool,
+  pub is_non_duplicate: bool,
 }
 impl GameStateT {
   pub fn pack(&self) -> GameState {
@@ -2337,7 +2337,7 @@ impl GameStateT {
       self.taku_cursol,
       self.dora_len,
       self.uradora_len,
-      self.is_duplicate_mode,
+      self.is_non_duplicate,
     )
   }
 }

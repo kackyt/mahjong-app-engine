@@ -95,5 +95,5 @@ struct GameState {
     taku_cursol: uint;
     dora_len: uint;
     uradora_len: uint;
-    is_duplicate_mode: bool;
+    is_non_duplicate: bool;
 }
