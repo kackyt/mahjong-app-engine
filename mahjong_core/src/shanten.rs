@@ -95,7 +95,7 @@ pub fn mentsu_count(hai_count: &mut [i32; 9], n: usize) -> [(i32, i32, i32); 2] 
 }
 
 
-/// すべての面子を抜き出す(TODO: 未完成)
+/// すべての面子を抜き出す
 fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Vec<Mentsu>> {
     if n >= 9 {
         return vec![vec![]];
