@@ -1,5 +1,5 @@
-use crate::mahjong_generated::open_mahjong::{PaiT, MentsuT, Mentsu, MentsuType, MentsuPai, MentsuFlag};
-use itertools::{iproduct, Itertools};
+use crate::mahjong_generated::open_mahjong::{PaiT, Mentsu, MentsuType, MentsuPai, MentsuFlag};
+use itertools::iproduct;
 
 /// 牌姿の内部表現
 #[derive(Debug, Clone)]

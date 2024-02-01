@@ -1,7 +1,7 @@
-use std::{any, fmt::Display, ops::Range};
+use std::{fmt::Display, ops::Range};
 
 use crate::mahjong_generated::open_mahjong::{Taku, TakuT, FixedString, FixedStringT, Pai, PaiT};
-use anyhow::ensure;
+use anyhow::{bail, ensure};
 use rand::prelude::SliceRandom;
 
 // 牌の表示
@@ -256,7 +256,7 @@ impl TakuControl for TakuT {
         if let Some(idx) = self.n5.iter().position(|item| item == target) {
             return Ok(idx + 128);
         }
-        Err(anyhow::anyhow!("not found"))
+        bail!("not found")
     }
 
     fn get(&self, index: usize) -> anyhow::Result<PaiT> {
@@ -276,7 +276,7 @@ impl TakuControl for TakuT {
             return Ok(self.n5[index - 128].clone());
         }
 
-        Err(anyhow::anyhow!("index out of range"))
+        bail!("index out of range")
     }
 
     fn get_range(&self, r: Range<usize>) -> anyhow::Result<Vec<PaiT>> {

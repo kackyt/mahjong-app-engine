@@ -1,4 +1,4 @@
-use anyhow::{anyhow, ensure};
+use anyhow::{bail, ensure};
 
 use crate::{
     agari::{add_machi_to_mentsu, AgariBehavior}, fbs_utils::TakuControl, mahjong_generated::open_mahjong::{GameStateT, PlayerT, PaiT, ActionType, TakuT}, shanten::{all_of_mentsu, PaiState}
@@ -165,7 +165,7 @@ impl GameStateT {
                     self.sutehai(param as usize);
                     Ok(())
                 } else {
-                    Err(anyhow!("not teban"))
+                    bail!("not teban")
                 }
             },
             ActionType::ACTION_CHII => todo!(),
@@ -175,7 +175,7 @@ impl GameStateT {
                 if player_index == self.teban as usize {
                     self.tsumo_agari()
                 } else {
-                    Err(anyhow!("not teban"))
+                    bail!("not teban")
                 }
             },
             ActionType::ACTION_NAGASHI => todo!(),
