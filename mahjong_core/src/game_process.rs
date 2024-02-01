@@ -1,19 +1,43 @@
 use anyhow::{bail, ensure};
 
 use crate::{
-    agari::{add_machi_to_mentsu, AgariBehavior}, fbs_utils::TakuControl, mahjong_generated::open_mahjong::{GameStateT, PlayerT, PaiT, ActionType, TakuT}, shanten::{all_of_mentsu, PaiState}
+    agari::{add_machi_to_mentsu, Agari, AgariBehavior}, fbs_utils::TakuControl, mahjong_generated::open_mahjong::{ActionType, GameStateT, PaiT, PlayerT, RuleT, TakuT}, shanten::{all_of_mentsu, PaiState}
 };
 
 const DORA_START_INDEX : usize = 0;
 const URADORA_START_INDEX : usize = 5;
 
+impl RuleT {
+    pub fn update_to_default(&mut self) {
+        self.enable_kuitan = true;
+        self.enable_kansaki = false;
+        self.enable_pao = false;
+        self.initial_score = 25000;
+        self.enable_tobi = true;
+        self.enable_wareme = false;
+        self.aka_type = 0;
+        self.shanyu_score = 0;
+        self.nannyu_score = -1;
+        self.enable_kuinaoshi = true;
+        self.uradora_type = 2;
+        self.enable_minus_riichi = true;
+        self.enable_ryanhan_shibari = false;
+        self.enable_keiten = true;
+        self.oyanagare_type = 0x0f;
+        self.kan_in_riichi = 1;
+        self.enable_kiriage = false;        
+    }
+}
+
+
 impl GameStateT {
     pub fn create(&mut self, title: &[u8], player_len: u32) {
         self.player_len = player_len;
+        self.rule.update_to_default();
 
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];
-            player.score = 25000;
+            player.score = self.rule.initial_score as i32;
         }
     }
 
@@ -129,7 +153,7 @@ impl GameStateT {
         }
     }
 
-    pub fn tsumo_agari(&mut self) -> anyhow::Result<()> {
+    pub fn tsumo_agari(&mut self) -> anyhow::Result<Agari> {
         let player = &self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
 
@@ -143,12 +167,9 @@ impl GameStateT {
         ensure!(all_mentsu_w_machi.len() > 0, "チョンボ！");
 
         let best_agari = self.get_best_agari(self.teban as usize, &all_mentsu_w_machi, &Vec::new(), 0)?;
-
-        println!("{} {} {}", best_agari.han, best_agari.fu, best_agari.score);
-
         self.players[self.teban as usize].score += best_agari.score;
 
-        Ok(())
+        Ok(best_agari)
     }
 
     pub fn action(&mut self, action_type: ActionType, player_index: usize, param: u32) -> anyhow::Result<()> {
@@ -173,7 +194,8 @@ impl GameStateT {
             ActionType::ACTION_KAN => todo!(),
             ActionType::ACTION_TSUMO => {
                 if player_index == self.teban as usize {
-                    self.tsumo_agari()
+                    self.tsumo_agari()?;
+                    Ok(())
                 } else {
                     bail!("not teban")
                 }

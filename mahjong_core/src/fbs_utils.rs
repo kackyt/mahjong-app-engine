@@ -1,6 +1,6 @@
 use std::{fmt::Display, ops::Range};
 
-use crate::mahjong_generated::open_mahjong::{Taku, TakuT, FixedString, FixedStringT, Pai, PaiT};
+use crate::mahjong_generated::open_mahjong::{FixedString, FixedStringT, Pai, PaiT, PlayerT, Taku, TakuT};
 use anyhow::{bail, ensure};
 use rand::prelude::SliceRandom;
 
@@ -152,12 +152,26 @@ impl Into<Vec<u8>> for FixedString {
     }
 }
 
+pub trait GetTsumo {
+    fn get_tsumohai(&self) -> Option<PaiT>;
+}
+
 pub trait TakuControl {
     fn load(list: &[u32]) -> Self;
     fn create_shuffled() -> Self;
     fn search(&self, target: &PaiT) -> anyhow::Result<usize>;
     fn get(&self, index: usize) -> anyhow::Result<PaiT>;
     fn get_range(&self, r: Range<usize>) -> anyhow::Result<Vec<PaiT>>;
+}
+
+impl GetTsumo for PlayerT {
+    fn get_tsumohai(&self) -> Option<PaiT> {
+        if self.is_tsumo {
+            Some(self.tsumohai.clone())
+        } else {
+            None
+        }
+    }
 }
 
 impl TakuControl for Taku {

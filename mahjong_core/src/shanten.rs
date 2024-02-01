@@ -297,6 +297,19 @@ impl PaiState {
         }
     }
 
+    pub fn append(&mut self, hai: &PaiT) {
+        let num = hai.pai_num as usize;
+        if num < 9 {
+            self.hai_count_m[num] += 1;
+        } else if num < 18 {
+            self.hai_count_p[num - 9] += 1;
+        } else if num < 27 {
+            self.hai_count_s[num - 18] += 1;
+        } else {
+            self.hai_count_z[num - 27] += 1;
+        }
+    }
+
     fn get_shanten_case(&mut self, b_atama: bool, n_fulo: usize) -> i32 {
         let m = mentsu_count(&mut self.hai_count_m, 0);
         let p = mentsu_count(&mut self.hai_count_p, 0);
