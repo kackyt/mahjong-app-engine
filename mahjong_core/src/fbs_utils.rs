@@ -153,7 +153,7 @@ impl Into<Vec<u8>> for FixedString {
 }
 
 pub trait TakuControl {
-    fn load(list: &Vec<u32>) -> Self;
+    fn load(list: &[u32]) -> Self;
     fn create_shuffled() -> Self;
     fn search(&self, target: &PaiT) -> anyhow::Result<usize>;
     fn get(&self, index: usize) -> anyhow::Result<PaiT>;
@@ -207,7 +207,7 @@ impl TakuControl for Taku {
         self.unpack().get_range(r)
     }
 
-    fn load(list: &Vec<u32>) -> Self {
+    fn load(list: &[u32]) -> Self {
         let hai_array: Vec<Pai> = list.into_iter().map(|x| Pai::new(
             (x >> 2) as u8,
             (x & 3) as u8,
@@ -368,7 +368,7 @@ impl TakuControl for TakuT {
         Ok(v)
     }
 
-    fn load(list: &Vec<u32>) -> Self {
+    fn load(list: &[u32]) -> Self {
         Taku::load(list).unpack()
     }
 }

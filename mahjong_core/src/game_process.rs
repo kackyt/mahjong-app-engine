@@ -21,7 +21,7 @@ impl GameStateT {
         self.taku = TakuT::create_shuffled()
     }
 
-    pub fn load(&mut self, hai_ids: &Vec<u32>) {
+    pub fn load(&mut self, hai_ids: &[u32]) {
         self.taku = TakuT::load(hai_ids);
     }
 
