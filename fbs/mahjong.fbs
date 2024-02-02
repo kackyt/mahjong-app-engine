@@ -107,17 +107,19 @@ struct Rule {
 
 struct GameState {
     title: FixedString;
+    kyoku_id: uint64;
     players: [Player: 4];
     player_len: uint;
-    bakaze: uint = 0;
-    oya: uint = 0;
-    tsumobou: uint = 0;
-    riichibou: uint = 0;
-    teban: uint = 0;
+    bakaze: uint;
+    oya: uint;
+    tsumobou: uint;
+    riichibou: uint;
+    teban: uint;
     taku: Taku;
     taku_cursol: uint;
     dora_len: uint;
     uradora_len: uint;
     is_non_duplicate: bool;
+    seq: uint;
     rule: Rule;
 }

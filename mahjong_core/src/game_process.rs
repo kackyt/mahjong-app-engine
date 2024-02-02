@@ -1,7 +1,8 @@
 use anyhow::{bail, ensure};
-
+use chrono::Utc;
+use itertools::Itertools;
 use crate::{
-    agari::{add_machi_to_mentsu, Agari, AgariBehavior}, fbs_utils::TakuControl, mahjong_generated::open_mahjong::{ActionType, GameStateT, PaiT, PlayerT, RuleT, TakuT}, shanten::{all_of_mentsu, PaiState}
+    agari::{add_machi_to_mentsu, Agari, AgariBehavior}, fbs_utils::TakuControl, mahjong_generated::open_mahjong::{ActionType, GameStateT, PaiT, PlayerT, RuleT, TakuT}, play_log::PlayLog, shanten::{all_of_mentsu, PaiState}
 };
 
 const DORA_START_INDEX : usize = 0;
@@ -77,11 +78,28 @@ impl GameStateT {
         }
     }
 
-    pub fn start(&mut self) {
+    pub fn start(&mut self, play_log: &mut PlayLog) {
         // 配牌
         self.taku_cursol = 14;
         self.dora_len = 1;
         self.uradora_len = 0;
+        self.seq = 0;
+        let dt = Utc::now();
+        self.kyoku_id = (dt.timestamp() / (24 * 3600) * 100000) as u64;
+        let mut kazes = [Some(0), Some(0), Some(0), Some(0)];
+
+        for idx in 0..self.player_len {
+            kazes[idx as usize] = Some(self.get_zikaze(idx as usize) as i32);
+        }
+
+        play_log.append_kyoku_log(
+            self.kyoku_id,
+            String::from(""),
+            0,
+            self.tsumobou as i32,
+            self.riichibou as i32,
+            &self.players.iter().map(|p| Some(p.score)).collect::<Vec<Option<i32>>>(), &kazes);
+
 
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];
@@ -104,6 +122,10 @@ impl GameStateT {
                 player.tehai_len = 13;
             }
 
+            play_log.append_haipais_log(self.kyoku_id, idx as i32, 
+                &player.tehai[..player.tehai_len as usize]
+                .into_iter().map(|x| Some(x.get_pai_id())).collect::<Vec<Option<u32>>>());
+
             *cursol += 13;
         }
     }
@@ -112,7 +134,7 @@ impl GameStateT {
         self.players[index].clone()
     }
 
-    pub fn tsumo(&mut self) -> anyhow::Result<()> {
+    pub fn tsumo(&mut self, play_log: &mut PlayLog) -> anyhow::Result<()> {
         let player = &mut self.players[self.teban as usize];
         player.is_tsumo = true;
 
@@ -122,12 +144,20 @@ impl GameStateT {
             player.tsumohai = self.taku.get(player.cursol as usize)?;
         }
 
+        play_log.append_actions_log(
+            self.kyoku_id,
+            self.teban as i32,
+            self.seq as i32, 
+            String::from("tsumo"),
+            player.tsumohai.get_pai_id());
+        self.seq += 1;
+
         self.next_cursol();
 
         Ok(())
     }
 
-    pub fn sutehai(&mut self, index: usize) {
+    pub fn sutehai(&mut self, play_log: &mut PlayLog, index: usize) {
         let player = &mut self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
 
@@ -143,6 +173,14 @@ impl GameStateT {
         } else {
             player.kawahai[player.kawahai_len as usize] = player.tsumohai.clone();
         }
+        play_log.append_actions_log(
+            self.kyoku_id,
+            self.teban as i32,
+            self.seq as i32,
+            String::from("sutehai"),
+            player.kawahai[player.kawahai_len as usize].get_pai_id());
+        self.seq += 1;
+
         player.kawahai_len += 1;
         player.tsumohai = Default::default();
 
@@ -153,11 +191,12 @@ impl GameStateT {
         }
     }
 
-    pub fn tsumo_agari(&mut self) -> anyhow::Result<Agari> {
+    pub fn tsumo_agari(&mut self, play_log: &mut PlayLog) -> anyhow::Result<Agari> {
         let player = &self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
+        let machipai = player.tsumohai.clone();
 
-        tehai.push(player.tsumohai.clone());
+        tehai.push(machipai.clone());
 
         let mut state = PaiState::from(&tehai);
 
@@ -169,21 +208,51 @@ impl GameStateT {
         let best_agari = self.get_best_agari(self.teban as usize, &all_mentsu_w_machi, &Vec::new(), 0)?;
         self.players[self.teban as usize].score += best_agari.score;
 
+        let dora_orig = self.get_dora().iter().map(|x| Some(x.get_pai_id())).collect_vec();
+        let uradora_orig = self.get_uradora().iter().map(|x| Some(x.get_pai_id())).collect_vec();
+
+        play_log.append_agaris_log(
+            self.kyoku_id,
+            machipai.get_pai_id(),
+            best_agari.score,
+            best_agari.fu,
+            best_agari.han,
+            &tehai.iter().map(|x| Some(x.get_pai_id())).collect_vec(),
+            &best_agari.yaku,
+            &dora_orig,
+            &uradora_orig,
+            &dora_orig,
+            &uradora_orig,
+            self.teban as i32,
+            self.teban as i32,
+            &[Some(best_agari.score), Some(0), Some(0), Some(0)],
+            false,
+            0);
+
         Ok(best_agari)
     }
 
-    pub fn action(&mut self, action_type: ActionType, player_index: usize, param: u32) -> anyhow::Result<()> {
+    pub fn nagare(&mut self, play_log: &mut PlayLog) {
+        let score = [Some(-3000), Some(0), Some(0), Some(0)];
+        play_log.append_nagare_log(
+            self.kyoku_id,
+            String::from("流局"),
+            &score
+        );
+    }
+
+    pub fn action(&mut self, play_log: &mut PlayLog, action_type: ActionType, player_index: usize, param: u32) -> anyhow::Result<()> {
         match action_type {
             ActionType::ACTION_SYNC => {
                 if player_index == self.teban as usize {
-                    self.tsumo()
+                    self.tsumo(play_log)
                 } else {
                     Ok(())
                 }
             },
             ActionType::ACTION_SUTEHAI => {
                 if player_index == self.teban as usize {
-                    self.sutehai(param as usize);
+                    self.sutehai(play_log, param as usize);
                     Ok(())
                 } else {
                     bail!("not teban")
@@ -194,7 +263,7 @@ impl GameStateT {
             ActionType::ACTION_KAN => todo!(),
             ActionType::ACTION_TSUMO => {
                 if player_index == self.teban as usize {
-                    self.tsumo_agari()?;
+                    self.tsumo_agari(play_log)?;
                     Ok(())
                 } else {
                     bail!("not teban")

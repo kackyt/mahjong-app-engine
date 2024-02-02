@@ -36,6 +36,12 @@ impl PartialOrd for PaiT {
 impl Eq for PaiT {
 }
 
+impl PaiT {
+    pub fn get_pai_id(&self) -> u32 {
+        (self.pai_num as u32) * 4 + self.id as u32
+    }
+}
+
 impl Ord for PaiT {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         match self.pai_num.cmp(&other.pai_num) {
