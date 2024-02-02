@@ -7,7 +7,7 @@ use arrow_array::builder::{Int32Builder, ListBuilder, StringBuilder, StructBuild
 use arrow_array::types::{Int32Type, UInt32Type};
 use arrow_array::FixedSizeListArray;
 use arrow_schema::{DataType, Field};
-use parquet::{arrow::arrow_writer::ArrowWriter, basic::{Compression, Encoding}, file::properties::*};
+use parquet::{arrow::arrow_writer::ArrowWriter, basic::{Compression, Encoding, GzipLevel}, file::properties::*};
 use arrow_array::{array::{BooleanArray, UInt32Array, Int32Array, UInt64Array, StringArray, ListArray, ArrayRef}, RecordBatch};
 
 
@@ -146,7 +146,7 @@ impl KyokuLog {
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
             .set_encoding(Encoding::PLAIN)
-            .set_compression(Compression::SNAPPY)
+            .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
         let id_vec = UInt64Array::from(self.id_vec.clone());
@@ -263,7 +263,7 @@ impl AgarisLog {
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
             .set_encoding(Encoding::PLAIN)
-            .set_compression(Compression::SNAPPY)
+            .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
         let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
@@ -333,7 +333,7 @@ impl HaipaisLog {
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
             .set_encoding(Encoding::PLAIN)
-            .set_compression(Compression::SNAPPY)
+            .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
         let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
@@ -382,7 +382,7 @@ impl ActionsLog {
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
             .set_encoding(Encoding::PLAIN)
-            .set_compression(Compression::SNAPPY)
+            .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
         let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
@@ -428,7 +428,7 @@ impl NagareLog {
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
             .set_encoding(Encoding::PLAIN)
-            .set_compression(Compression::SNAPPY)
+            .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
         let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
@@ -532,6 +532,7 @@ impl PlayLog {
         fs::create_dir_all(path.as_ref().join(format!("kyokus/{}", dtstr)))?;
         fs::create_dir_all(path.as_ref().join(format!("haipais/{}", dtstr)))?;
         fs::create_dir_all(path.as_ref().join(format!("agaris/{}", dtstr)))?;
+        fs::create_dir_all(path.as_ref().join(format!("actions/{}", dtstr)))?;
         fs::create_dir_all(path.as_ref().join(format!("nagares/{}", dtstr)))?;
         self.kyoku_log.save_to_parquet(path.as_ref().join(format!("kyokus/{}/kyoku-{}.parquet", dtstr, dt.timestamp())))?;
         self.haipais_log.save_to_parquet(path.as_ref().join(format!("haipais/{}/haipai-{}.parquet", dtstr, dt.timestamp())))?;
