@@ -169,7 +169,7 @@ impl KyokuLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;;
+        writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
         writer.close()?;
 
@@ -307,7 +307,7 @@ impl AgarisLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
+        writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
         writer.close()?;
 
         Ok(())
@@ -351,7 +351,7 @@ impl HaipaisLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
+        writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
         writer.close()?;
 
@@ -404,7 +404,7 @@ impl ActionsLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
+        writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
         writer.close()?;
 
@@ -444,7 +444,7 @@ impl NagareLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
+        writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
         writer.close()?;
 
