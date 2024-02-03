@@ -490,7 +490,7 @@ impl AgariBehavior for GameStateT {
         if let Some(x) = ret {
             Ok(x)
         } else {
-            bail!("No Agari")
+            bail!("Agari tehai or yaku not found")
         }
     }
 }
