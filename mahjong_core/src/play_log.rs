@@ -1,5 +1,6 @@
 use std::{path::Path, sync::Arc};
 use chrono::Utc;
+use anyhow::anyhow;
 
 //#[cfg(feature = "write-log")]
 use std::fs::{self, File};
@@ -141,7 +142,7 @@ impl KyokuLog {
     }
 
     pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
-        let file = File::create(path)?;
+        let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
@@ -168,7 +169,7 @@ impl KyokuLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        writer.write(&batch)?;
+        writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;;
 
         writer.close()?;
 
@@ -258,7 +259,7 @@ impl AgarisLog {
     }
 
     pub fn save_to_parquet<P: AsRef<Path>>(&mut self, path: P) -> anyhow::Result<()> {
-        let file = File::create(path)?;
+        let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
@@ -305,7 +306,7 @@ impl AgarisLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        writer.write(&batch)?;
+        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
         writer.close()?;
 
         Ok(())
@@ -328,7 +329,7 @@ impl HaipaisLog {
     }
 
     pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
-        let file = File::create(path)?;
+        let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
@@ -349,7 +350,7 @@ impl HaipaisLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        writer.write(&batch)?;
+        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
         writer.close()?;
 
@@ -377,7 +378,7 @@ impl ActionsLog {
 
     // #[cfg(feature = "write-log")]
     pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
-        let file = File::create(path)?;
+        let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
@@ -402,7 +403,7 @@ impl ActionsLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        writer.write(&batch)?;
+        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
         writer.close()?;
 
@@ -423,7 +424,7 @@ impl NagareLog {
     }
 
     pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
-        let file = File::create(path)?;
+        let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
             .set_writer_version(WriterVersion::PARQUET_2_0)
@@ -442,7 +443,7 @@ impl NagareLog {
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
-        writer.write(&batch)?;
+        let file = writer.write(&batch).map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
         writer.close()?;
 
