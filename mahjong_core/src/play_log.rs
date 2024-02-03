@@ -179,6 +179,7 @@ impl KyokuLog {
 
 impl AgarisLog {
     pub fn new() -> Self {
+        // yakuはname(役の名前)とhan(翻数)の2つのフィールドを持つ構造体のリストが一つのレコードとして保存される
         let yaku_vec_builder = ListBuilder::new(
             StructBuilder::new(
                 vec![
