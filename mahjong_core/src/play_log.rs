@@ -141,7 +141,7 @@ impl KyokuLog {
         self.kazes_vec.push(Some(kazes.to_vec()));
     }
 
-    pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+    pub fn save_to_parquet<P: AsRef<Path>>(self, path: P) -> anyhow::Result<()> {
         let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
@@ -150,13 +150,13 @@ impl KyokuLog {
             .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
-        let id_vec = UInt64Array::from(self.id_vec.clone());
-        let game_id_vec = StringArray::from(self.game_id_vec.clone());
-        let kyoku_num_vec = Int32Array::from(self.kyoku_num_vec.clone());
-        let honba_vec = Int32Array::from(self.honba_vec.clone());
-        let riichi_bou_vec = Int32Array::from(self.riichi_bou_vec.clone());
-        let scores_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.scores_vec.clone(),4);
-        let kazes_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.kazes_vec.clone(), 4);
+        let id_vec = UInt64Array::from(self.id_vec);
+        let game_id_vec = StringArray::from(self.game_id_vec);
+        let kyoku_num_vec = Int32Array::from(self.kyoku_num_vec);
+        let honba_vec = Int32Array::from(self.honba_vec);
+        let riichi_bou_vec = Int32Array::from(self.riichi_bou_vec);
+        let scores_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.scores_vec,4);
+        let kazes_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.kazes_vec, 4);
 
         let batch = RecordBatch::try_from_iter(vec![
             ("id", Arc::new(id_vec) as ArrayRef),
@@ -259,7 +259,7 @@ impl AgarisLog {
         self.yaku_vec_builder.append(true);
     }
 
-    pub fn save_to_parquet<P: AsRef<Path>>(&mut self, path: P) -> anyhow::Result<()> {
+    pub fn save_to_parquet<P: AsRef<Path>>(mut self, path: P) -> anyhow::Result<()> {
         let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
@@ -268,23 +268,23 @@ impl AgarisLog {
             .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
-        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
-        let machipai_vec = UInt32Array::from(self.machipai_vec.clone());
-        let score_vec = Int32Array::from(self.score_vec.clone());
-        let fu_vec = Int32Array::from(self.fu_vec.clone());
-        let han_vec = Int32Array::from(self.han_vec.clone());
-        let tehai_vec = StringArray::from(self.tehai_vec.clone());
-        let pai_ids_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.pai_ids_vec.clone());
+        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec);
+        let machipai_vec = UInt32Array::from(self.machipai_vec);
+        let score_vec = Int32Array::from(self.score_vec);
+        let fu_vec = Int32Array::from(self.fu_vec);
+        let han_vec = Int32Array::from(self.han_vec);
+        let tehai_vec = StringArray::from(self.tehai_vec);
+        let pai_ids_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.pai_ids_vec);
         let yaku_vec = self.yaku_vec_builder.finish();
-        let dora_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.dora_vec.clone());
-        let uradora_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.uradora_vec.clone());
-        let dora_orig_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.dora_orig_vec.clone());
-        let uradora_orig_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.uradora_orig_vec.clone());
-        let who_vec = Int32Array::from(self.who_vec.clone());
-        let by_vec = Int32Array::from(self.by_vec.clone());
-        let score_diff_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.score_diff_vec.clone(), 4);
-        let owari_vec = BooleanArray::from(self.owari_vec.clone());
-        let nukidora_vec = UInt32Array::from(self.nukidora_vec.clone());
+        let dora_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.dora_vec);
+        let uradora_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.uradora_vec);
+        let dora_orig_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.dora_orig_vec);
+        let uradora_orig_vec = ListArray::from_iter_primitive::<UInt32Type, _, _>(self.uradora_orig_vec);
+        let who_vec = Int32Array::from(self.who_vec);
+        let by_vec = Int32Array::from(self.by_vec);
+        let score_diff_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.score_diff_vec, 4);
+        let owari_vec = BooleanArray::from(self.owari_vec);
+        let nukidora_vec = UInt32Array::from(self.nukidora_vec);
 
         let batch = RecordBatch::try_from_iter(vec![
             ("kyoku_id", Arc::new(kyoku_id_vec) as ArrayRef),
@@ -329,7 +329,7 @@ impl HaipaisLog {
         self.pai_ids_vec.push(Some(pai_ids.to_vec()));
     }
 
-    pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+    pub fn save_to_parquet<P: AsRef<Path>>(self, path: P) -> anyhow::Result<()> {
         let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
@@ -338,10 +338,10 @@ impl HaipaisLog {
             .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
-        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
-        let player_index_vec = Int32Array::from(self.player_index_vec.clone());
-        let haipai_vec = StringArray::from(self.haipai_vec.clone());
-        let pai_ids_vec = FixedSizeListArray::from_iter_primitive::<UInt32Type, _, _>(self.pai_ids_vec.clone(), 13);
+        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec);
+        let player_index_vec = Int32Array::from(self.player_index_vec);
+        let haipai_vec = StringArray::from(self.haipai_vec);
+        let pai_ids_vec = FixedSizeListArray::from_iter_primitive::<UInt32Type, _, _>(self.pai_ids_vec, 13);
 
         let batch = RecordBatch::try_from_iter(vec![
             ("kyoku_id", Arc::new(kyoku_id_vec) as ArrayRef),
@@ -378,7 +378,7 @@ impl ActionsLog {
     }
 
     // #[cfg(feature = "write-log")]
-    pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+    pub fn save_to_parquet<P: AsRef<Path>>(self, path: P) -> anyhow::Result<()> {
         let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
@@ -387,12 +387,12 @@ impl ActionsLog {
             .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
-        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
-        let player_index_vec = Int32Array::from(self.player_index_vec.clone());
-        let seq_vec = Int32Array::from(self.seq_vec.clone());
-        let type_vec = StringArray::from(self.type_vec.clone());
-        let pais_vec = StringArray::from(self.pais_vec.clone());
-        let pai_id_vec = UInt32Array::from(self.pai_id_vec.clone());
+        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec);
+        let player_index_vec = Int32Array::from(self.player_index_vec);
+        let seq_vec = Int32Array::from(self.seq_vec);
+        let type_vec = StringArray::from(self.type_vec);
+        let pais_vec = StringArray::from(self.pais_vec);
+        let pai_id_vec = UInt32Array::from(self.pai_id_vec);
 
         let batch = RecordBatch::try_from_iter(vec![
             ("kyoku_id", Arc::new(kyoku_id_vec) as ArrayRef),
@@ -400,7 +400,7 @@ impl ActionsLog {
             ("seq", Arc::new(seq_vec) as ArrayRef),
             ("type", Arc::new(type_vec) as ArrayRef),
             ("pais", Arc::new(pais_vec) as ArrayRef),
-            ("pai_id", Arc::new(pai_id_vec.clone()) as ArrayRef),
+            ("pai_id", Arc::new(pai_id_vec) as ArrayRef),
         ])?;
 
         let mut writer = ArrowWriter::try_new(file, batch.schema(), Some(props))?;
@@ -424,7 +424,7 @@ impl NagareLog {
         self.score_diff_vec.push(Some(score_diff.to_vec()));
     }
 
-    pub fn save_to_parquet<P: AsRef<Path>>(&self, path: P) -> anyhow::Result<()> {
+    pub fn save_to_parquet<P: AsRef<Path>>(self, path: P) -> anyhow::Result<()> {
         let file = File::create(path.as_ref()).map_err(|e| anyhow!("Failed to create file at {:?}: {}", path.as_ref(), e))?;
 
         let props = WriterProperties::builder()
@@ -433,9 +433,9 @@ impl NagareLog {
             .set_compression(Compression::GZIP(GzipLevel::default()))
             .build();
 
-        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec.clone());
-        let name_vec = StringArray::from(self.name_vec.clone());
-        let score_diff_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.score_diff_vec.clone(), 4);
+        let kyoku_id_vec = UInt64Array::from(self.kyoku_id_vec);
+        let name_vec = StringArray::from(self.name_vec);
+        let score_diff_vec = FixedSizeListArray::from_iter_primitive::<Int32Type, _, _>(self.score_diff_vec, 4);
 
         let batch = RecordBatch::try_from_iter(vec![
             ("kyoku_id", Arc::new(kyoku_id_vec) as ArrayRef),
@@ -527,7 +527,8 @@ impl PlayLog {
         self.actions_log.append(kyoku_id, player_index, seq, action_type, pai_id);
     }
 
-    pub fn write_to_parquet<P: AsRef<Path>>(&mut self, path: P) -> anyhow::Result<()> {
+    // 最後に呼び出すことで、全てのログをparquetファイルに書き出す
+    pub fn write_to_parquet<P: AsRef<Path>>(self, path: P) -> anyhow::Result<()> {
         let dt = Utc::now();
         let dtstr = dt.format("dt=%Y-%m-%d");
 
