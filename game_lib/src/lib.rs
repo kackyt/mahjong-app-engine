@@ -1,6 +1,6 @@
 use std::{mem, os::raw::c_char, ffi::CStr};
 
-use mahjong_core::{mahjong_generated::open_mahjong::{GameStateT, Player, ActionType, PaiT}, shanten::PaiState};
+use mahjong_core::{mahjong_generated::open_mahjong::{GameStateT, Player, ActionType, PaiT}, shanten::PaiState, play_log::PlayLog};
 
 
 #[no_mangle]
@@ -18,10 +18,11 @@ pub unsafe extern "C" fn initialize(ptr: *mut GameStateT, title: *const c_char, 
     let gamestate = ptr.as_mut().unwrap();
     let title_str = CStr::from_ptr(title);
     let title_slice = title_str.to_bytes();
+    let mut play_log = PlayLog::new();
 
     gamestate.clone_from(&GameStateT::default());
     gamestate.create(title_slice, player_len);
-    gamestate.start()
+    gamestate.start(&mut play_log);
 }
 
 #[no_mangle]
@@ -42,8 +43,9 @@ pub unsafe extern "C" fn get_player_shanten(ptr: *mut GameStateT, player_index: 
 #[no_mangle]
 pub unsafe extern "C" fn do_action(ptr: *mut GameStateT, action_type: u32, player_index: usize, param: u32) {
     let gamestate = ptr.as_mut().unwrap();
+    let mut play_log = PlayLog::new();
 
-    let _ = gamestate.action(ActionType(action_type), player_index, param);
+    let _ = gamestate.action(&mut play_log, ActionType(action_type), player_index, param);
 }
 
 #[no_mangle]
