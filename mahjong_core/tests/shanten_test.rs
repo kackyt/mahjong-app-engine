@@ -60,13 +60,11 @@ fn calc_hon_shanten_test() -> Result<(), Error> {
 fn calc_koku_shanten_test() -> Result<(), Error> {
     let filepath = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/p_koku_10000.txt");
     let case1 = parse_testcase(&filepath)?;
-    let mut lines = 1;
 
     for case in case1 {
         let mut state = PaiState::from(&case.0);
 
         assert_eq!(state.get_shanten(0), case.1);
-        lines += 1;
     }
 
     Ok(())
@@ -76,13 +74,11 @@ fn calc_koku_shanten_test() -> Result<(), Error> {
 fn calc_normal_shanten_test() -> Result<(), Error> {
     let filepath = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/p_normal_10000.txt");
     let case1 = parse_testcase(&filepath)?;
-    let mut lines = 1;
 
     for case in case1 {
         let mut state = PaiState::from(&case.0);
 
         assert_eq!(state.get_shanten(0), case.1);
-        lines += 1;
     }
 
     Ok(())
@@ -92,13 +88,11 @@ fn calc_normal_shanten_test() -> Result<(), Error> {
 fn calc_tin_shanten_test() -> Result<(), Error> {
     let filepath = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/data/p_tin_10000.txt");
     let case1 = parse_testcase(&filepath)?;
-    let mut lines = 1;
 
     for case in case1 {
         let mut state = PaiState::from(&case.0);
 
         assert_eq!(state.get_shanten(0), case.1);
-        lines += 1;
     }
 
     Ok(())

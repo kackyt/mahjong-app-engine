@@ -82,18 +82,44 @@ struct Player {
     cursol: uint;
 }
 
+struct Rule {
+    enable_kuitan: bool;
+    enable_kansaki: bool;
+    enable_pao: bool;
+    double_ron_type: uint;
+    initial_score: uint;
+    enable_tobi: bool;
+    enable_wareme: bool;
+    aka_type: uint;
+    shanyu_score: int;
+    nannyu_score: int;
+    enable_kuinaoshi: bool;
+    uradora_type: int;
+    enable_minus_riichi: bool;
+    enable_ryanhan_shibari: bool;
+    furiten_riichi_type: uint;
+    enable_keiten: bool;
+    oyanagare_type: uint;
+    kan_in_riichi: uint;
+    enable_kiriage: bool;
+    enable_agariyame: bool;
+}
+
 struct GameState {
     title: FixedString;
+    kyoku_id: uint64;
     players: [Player: 4];
     player_len: uint;
-    bakaze: uint = 0;
-    oya: uint = 0;
-    tsumobou: uint = 0;
-    riichibou: uint = 0;
-    teban: uint = 0;
+    bakaze: uint;
+    oya: uint;
+    tsumobou: uint;
+    riichibou: uint;
+    teban: uint;
     taku: Taku;
     taku_cursol: uint;
     dora_len: uint;
     uradora_len: uint;
-    is_duplicate_mode: bool;
+    is_non_duplicate: bool;
+    seq: uint;
+    rule: Rule;
 }

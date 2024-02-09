@@ -3,7 +3,7 @@ use std::ffi::CString;
 use clap::Parser;
 use anyhow::ensure;
 use crossterm::{terminal::{enable_raw_mode, disable_raw_mode}, event::{Event, KeyCode, read}};
-use mahjong_core::{load_pailist::load_pailist, mahjong_generated::open_mahjong::{GameStateT, PaiT, ActionType}, shanten::PaiState};
+use mahjong_core::{load_pailist::load_pailist, mahjong_generated::open_mahjong::{GameStateT, PaiT, ActionType}, shanten::PaiState, play_log::PlayLog};
 
 #[derive(Parser, Debug)]
 #[command(author, about, version)]
@@ -61,6 +61,7 @@ fn main() -> anyhow::Result<()> {
     let mut game_state: GameStateT = Default::default();
     let title: CString = CString::new("title")?;
     let keys =['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', '¥'];
+    let mut play_log = PlayLog::new();
 
     enable_raw_mode()?;
 
@@ -74,10 +75,10 @@ fn main() -> anyhow::Result<()> {
         game_state.shuffle();
     }
 
-    game_state.start();
+    game_state.start(&mut play_log);
 
     loop {
-        let _ = game_state.tsumo();
+        let _ = game_state.tsumo(&mut play_log);
 
         let player = game_state.get_player(0);
 
@@ -98,7 +99,7 @@ fn main() -> anyhow::Result<()> {
         let command = cmd();
 
         if let Ok(sutehai) = command {
-            let _ = game_state.action(ActionType::ACTION_SUTEHAI, 0, sutehai);
+            let _ = game_state.action(&mut play_log, ActionType::ACTION_SUTEHAI, 0, sutehai);
             println!("\r");
         } else {
             println!("end\r");

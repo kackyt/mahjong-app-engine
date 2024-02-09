@@ -1,3 +1,5 @@
+use anyhow::bail;
+
 use crate::mahjong_generated::open_mahjong::{Mentsu, Pai, MentsuFlag, GameStateT, MentsuType};
 
 #[derive(Default, Debug)]
@@ -488,7 +490,7 @@ impl AgariBehavior for GameStateT {
         if let Some(x) = ret {
             Ok(x)
         } else {
-            Err(anyhow::anyhow!("No Agari"))
+            bail!("Agari tehai or yaku not found")
         }
     }
 }

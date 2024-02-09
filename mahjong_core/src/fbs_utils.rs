@@ -1,7 +1,7 @@
-use std::{any, fmt::Display, ops::Range};
+use std::{fmt::Display, ops::Range};
 
-use crate::mahjong_generated::open_mahjong::{Taku, TakuT, FixedString, FixedStringT, Pai, PaiT};
-use anyhow::ensure;
+use crate::mahjong_generated::open_mahjong::{FixedString, FixedStringT, Pai, PaiT, PlayerT, Taku, TakuT};
+use anyhow::{bail, ensure};
 use rand::prelude::SliceRandom;
 
 // 牌の表示
@@ -34,6 +34,12 @@ impl PartialOrd for PaiT {
 }
 
 impl Eq for PaiT {
+}
+
+impl PaiT {
+    pub fn get_pai_id(&self) -> u32 {
+        (self.pai_num as u32) * 4 + self.id as u32
+    }
 }
 
 impl Ord for PaiT {
@@ -152,12 +158,26 @@ impl Into<Vec<u8>> for FixedString {
     }
 }
 
+pub trait GetTsumo {
+    fn get_tsumohai(&self) -> Option<PaiT>;
+}
+
 pub trait TakuControl {
-    fn load(list: &Vec<u32>) -> Self;
+    fn load(list: &[u32]) -> Self;
     fn create_shuffled() -> Self;
     fn search(&self, target: &PaiT) -> anyhow::Result<usize>;
     fn get(&self, index: usize) -> anyhow::Result<PaiT>;
     fn get_range(&self, r: Range<usize>) -> anyhow::Result<Vec<PaiT>>;
+}
+
+impl GetTsumo for PlayerT {
+    fn get_tsumohai(&self) -> Option<PaiT> {
+        if self.is_tsumo {
+            Some(self.tsumohai.clone())
+        } else {
+            None
+        }
+    }
 }
 
 impl TakuControl for Taku {
@@ -207,7 +227,7 @@ impl TakuControl for Taku {
         self.unpack().get_range(r)
     }
 
-    fn load(list: &Vec<u32>) -> Self {
+    fn load(list: &[u32]) -> Self {
         let hai_array: Vec<Pai> = list.into_iter().map(|x| Pai::new(
             (x >> 2) as u8,
             (x & 3) as u8,
@@ -256,7 +276,7 @@ impl TakuControl for TakuT {
         if let Some(idx) = self.n5.iter().position(|item| item == target) {
             return Ok(idx + 128);
         }
-        Err(anyhow::anyhow!("not found"))
+        bail!("not found")
     }
 
     fn get(&self, index: usize) -> anyhow::Result<PaiT> {
@@ -276,7 +296,7 @@ impl TakuControl for TakuT {
             return Ok(self.n5[index - 128].clone());
         }
 
-        Err(anyhow::anyhow!("index out of range"))
+        bail!("index out of range")
     }
 
     fn get_range(&self, r: Range<usize>) -> anyhow::Result<Vec<PaiT>> {
@@ -368,7 +388,7 @@ impl TakuControl for TakuT {
         Ok(v)
     }
 
-    fn load(list: &Vec<u32>) -> Self {
+    fn load(list: &[u32]) -> Self {
         Taku::load(list).unpack()
     }
 }

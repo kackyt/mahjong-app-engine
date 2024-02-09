@@ -1,5 +1,5 @@
-use crate::mahjong_generated::open_mahjong::{PaiT, MentsuT, Mentsu, MentsuType, MentsuPai, MentsuFlag};
-use itertools::{iproduct, Itertools};
+use crate::mahjong_generated::open_mahjong::{PaiT, Mentsu, MentsuType, MentsuPai, MentsuFlag};
+use itertools::iproduct;
 
 /// 牌姿の内部表現
 #[derive(Debug, Clone)]
@@ -152,7 +152,7 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
         }).collect();
     }
 
-    println!("s{} {}: {:?} {:?}\r", suit, n, shuntsu, koutsu);
+    // println!("s{} {}: {:?} {:?}\r", suit, n, shuntsu, koutsu);
 
     if shuntsu.len() == 0 && koutsu.len() == 0 {
         vec![vec![]]
@@ -271,7 +271,7 @@ pub fn all_of_mentsu(pai_state: &mut PaiState, n_fulo: usize) -> Vec<Vec<Mentsu>
 }
 
 impl PaiState {
-    pub fn from(value: &Vec<PaiT>) -> Self {
+    pub fn from(value: &[PaiT]) -> Self {
         let mut hai_count_m: [i32; 9] = [0; 9];
         let mut hai_count_p: [i32; 9] = [0; 9];
         let mut hai_count_s: [i32; 9] = [0; 9];
@@ -294,6 +294,19 @@ impl PaiState {
             hai_count_p,
             hai_count_s,
             hai_count_z,
+        }
+    }
+
+    pub fn append(&mut self, hai: &PaiT) {
+        let num = hai.pai_num as usize;
+        if num < 9 {
+            self.hai_count_m[num] += 1;
+        } else if num < 18 {
+            self.hai_count_p[num - 9] += 1;
+        } else if num < 27 {
+            self.hai_count_s[num - 18] += 1;
+        } else {
+            self.hai_count_z[num - 27] += 1;
         }
     }
 
