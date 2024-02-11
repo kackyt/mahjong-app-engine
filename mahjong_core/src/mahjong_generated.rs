@@ -21,10 +21,10 @@ pub mod open_mahjong {
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ACTION_TYPE: u32 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_ACTION_TYPE: u32 = 6;
+pub const ENUM_MAX_ACTION_TYPE: u32 = 7;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 7] = [
+pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 8] = [
   ActionType::ACTION_SYNC,
   ActionType::ACTION_SUTEHAI,
   ActionType::ACTION_CHII,
@@ -32,6 +32,7 @@ pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 7] = [
   ActionType::ACTION_KAN,
   ActionType::ACTION_TSUMO,
   ActionType::ACTION_NAGASHI,
+  ActionType::ACTION_RIICHI,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -46,9 +47,10 @@ impl ActionType {
   pub const ACTION_KAN: Self = Self(4);
   pub const ACTION_TSUMO: Self = Self(5);
   pub const ACTION_NAGASHI: Self = Self(6);
+  pub const ACTION_RIICHI: Self = Self(7);
 
   pub const ENUM_MIN: u32 = 0;
-  pub const ENUM_MAX: u32 = 6;
+  pub const ENUM_MAX: u32 = 7;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::ACTION_SYNC,
     Self::ACTION_SUTEHAI,
@@ -57,6 +59,7 @@ impl ActionType {
     Self::ACTION_KAN,
     Self::ACTION_TSUMO,
     Self::ACTION_NAGASHI,
+    Self::ACTION_RIICHI,
   ];
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
@@ -68,6 +71,7 @@ impl ActionType {
       Self::ACTION_KAN => Some("ACTION_KAN"),
       Self::ACTION_TSUMO => Some("ACTION_TSUMO"),
       Self::ACTION_NAGASHI => Some("ACTION_NAGASHI"),
+      Self::ACTION_RIICHI => Some("ACTION_RIICHI"),
       _ => None,
     }
   }

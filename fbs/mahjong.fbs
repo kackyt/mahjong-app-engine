@@ -19,6 +19,7 @@ enum ActionType : uint {
     ACTION_KAN,
     ACTION_TSUMO,
     ACTION_NAGASHI,
+    ACTION_RIICHI,
 }
 
 enum MentsuType : ubyte {
