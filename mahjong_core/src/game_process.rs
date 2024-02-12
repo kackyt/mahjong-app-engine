@@ -8,6 +8,7 @@ use crate::{
 use anyhow::{bail, ensure};
 use chrono::Utc;
 use itertools::Itertools;
+use uuid::Uuid;
 
 const DORA_START_INDEX: usize = 0;
 const URADORA_START_INDEX: usize = 5;
@@ -38,6 +39,9 @@ impl GameStateT {
     pub fn create(&mut self, title: &[u8], player_len: u32) {
         self.player_len = player_len;
         self.rule.update_to_default();
+        self.title = title.into();
+        let uuid = Uuid::new_v4();
+        self.game_id = uuid.into_bytes();
 
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];
@@ -99,9 +103,11 @@ impl GameStateT {
             kazes[idx as usize] = Some(self.get_zikaze(idx as usize) as i32);
         }
 
+        let uuid = Uuid::from_bytes_ref(&self.game_id);
+
         play_log.append_kyoku_log(
             self.kyoku_id,
-            String::from(""),
+            uuid.hyphenated().to_string(),
             0,
             self.tsumobou as i32,
             self.riichibou as i32,

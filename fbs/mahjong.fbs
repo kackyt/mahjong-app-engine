@@ -108,6 +108,7 @@ struct Rule {
 
 struct GameState {
     title: FixedString;
+    game_id: [ubyte: 16];
     kyoku_id: uint64;
     players: [Player: 4];
     player_len: uint;
