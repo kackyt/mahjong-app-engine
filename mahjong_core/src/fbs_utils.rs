@@ -166,6 +166,12 @@ pub trait GetTsumo {
     fn get_tsumohai(&self) -> Option<PaiT>;
 }
 
+impl PlayerT {
+    pub fn is_registered(&self) -> bool {
+        self.name.n1[0] != 0
+    }
+}
+
 pub trait TakuControl {
     fn load(list: &[u32]) -> Self;
     fn create_shuffled() -> Self;

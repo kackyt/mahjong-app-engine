@@ -9,7 +9,7 @@ fn game_start_test() {
     let mut play_log = play_log::PlayLog::new();
 
     // 1人プレイのテスト
-    state.create("test".as_bytes(), 1);
+    state.create("test".as_bytes(), 1, &mut play_log);
     state.shuffle();
 
     state.start(&mut play_log);

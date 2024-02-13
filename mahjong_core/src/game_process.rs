@@ -8,6 +8,7 @@ use crate::{
 use anyhow::{bail, ensure};
 use chrono::Utc;
 use itertools::Itertools;
+use rand::seq::SliceRandom;
 use uuid::Uuid;
 
 const DORA_START_INDEX: usize = 0;
@@ -36,17 +37,62 @@ impl RuleT {
 }
 
 impl GameStateT {
-    pub fn create(&mut self, title: &[u8], player_len: u32) {
+    pub fn create(&mut self, title: &[u8], player_len: u32, play_log: &mut PlayLog) {
         self.player_len = player_len;
         self.rule.update_to_default();
         self.title = title.into();
         let uuid = Uuid::new_v4();
         self.game_id = uuid.into_bytes();
+        let dt = Utc::now();
 
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];
             player.score = self.rule.initial_score as i32;
         }
+
+        play_log.append_game_log(uuid.hyphenated().to_string(), dt.timestamp() as u64);
+    }
+
+    pub fn register_player(
+        &mut self,
+        name: &[u8],
+        play_log: &mut PlayLog,
+    ) -> anyhow::Result<usize> {
+        // registered == falseなplayerのindexのリストを作る
+        let unregistered_index = self
+            .players
+            .iter()
+            .enumerate()
+            .filter(|(_, x)| !x.is_registered())
+            .map(|(i, _)| i)
+            .collect_vec();
+        ensure!(unregistered_index.len() != 0, "player is full");
+
+        // unregistered_indexからランダムに選ぶ
+        let mut rng = rand::thread_rng();
+        let chosen_index = unregistered_index.choose(&mut rng);
+
+        // chosen_indexがNoneならば、エラー
+        ensure!(chosen_index.is_some(), "player index choose error");
+
+        let index = chosen_index.unwrap();
+        let uuid = Uuid::from_bytes_ref(&self.game_id);
+
+        self.players[*index].name = name.into();
+
+        play_log.append_game_player_log(
+            uuid.hyphenated().to_string(),
+            String::from_utf8(name.to_vec())?,
+            *index as i32,
+        );
+
+        Ok(*index)
+    }
+
+    pub fn are_players_all_registered(&self) -> bool {
+        self.players[..self.player_len as usize]
+            .iter()
+            .all(|x| x.is_registered())
     }
 
     pub fn shuffle(&mut self) {
