@@ -13,6 +13,7 @@ use uuid::Uuid;
 
 const DORA_START_INDEX: usize = 0;
 const URADORA_START_INDEX: usize = 5;
+const START_OF_YAMA: [u32; 4] = [14, 45, 75, 105];
 
 impl RuleT {
     pub fn update_to_default(&mut self) {
@@ -125,12 +126,11 @@ impl GameStateT {
         if self.is_non_duplicate {
             136 - self.taku_cursol
         } else {
-            let start_of_yama = [14, 45, 75, 105];
             136 - 14
                 - self.players[0..self.player_len as usize]
                     .iter()
                     .enumerate()
-                    .map(|(idx, x)| x.cursol - start_of_yama[idx])
+                    .map(|(idx, x)| x.cursol - START_OF_YAMA[idx])
                     .sum::<u32>()
         }
     }
