@@ -1,5 +1,8 @@
 use anyhow::anyhow;
 use chrono::Utc;
+use parquet::arrow::arrow_reader::{ParquetRecordBatchReader, ParquetRecordBatchReaderBuilder};
+use std::io;
+use std::path::Iter;
 use std::{path::Path, sync::Arc};
 
 //#[cfg(feature = "write-log")]
@@ -10,13 +13,13 @@ use arrow_array::{
     array::{ArrayRef, BooleanArray, Int32Array, ListArray, StringArray, UInt32Array, UInt64Array},
     RecordBatch,
 };
-use arrow_schema::{DataType, Field};
+use arrow_schema::{ArrowError, DataType, Field};
 use parquet::{
     arrow::arrow_writer::ArrowWriter,
     basic::{Compression, Encoding, GzipLevel},
     file::properties::*,
 };
-use std::fs::{self, File};
+use std::fs::{self, File, ReadDir};
 
 fn num_to_hai(num_list: &[Option<u32>], has_aka: u32) -> String {
     let colors = ['m', 'p', 's', 'z'];
@@ -58,6 +61,179 @@ pub struct PlayLog {
     agaris_log: AgarisLog,
     nagare_log: NagareLog,
     actions_log: ActionsLog,
+}
+
+pub struct PaiyamaBatch {
+    entries: ReadDir,
+    batch_reader: Option<ParquetRecordBatchReader>,
+    id_list: Option<UInt64Array>,
+    pai_ids_list: Option<FixedSizeListArray>,
+    index: usize,
+}
+
+fn next_batch(
+    batch_reader: &mut ParquetRecordBatchReader,
+) -> anyhow::Result<(Option<UInt64Array>, Option<FixedSizeListArray>)> {
+    let op_record_batch = batch_reader.next();
+    if let Some(record_batch_r) = op_record_batch {
+        let record_batch = record_batch_r?;
+        let id_list = record_batch
+            .column(0)
+            .as_any()
+            .downcast_ref::<UInt64Array>()
+            .ok_or_else(|| anyhow!("Failed to downcast to UInt64Array"))?
+            .clone();
+        let pai_ids_list = record_batch
+            .column(1)
+            .as_any()
+            .downcast_ref::<FixedSizeListArray>()
+            .ok_or_else(|| anyhow!("Failed to downcast to FixedSizeListArray"))?
+            .clone();
+        return Ok((Some(id_list), Some(pai_ids_list)));
+    }
+    Ok((None, None))
+}
+
+fn next_entry(
+    entry: &mut ReadDir,
+) -> anyhow::Result<(
+    Option<ParquetRecordBatchReader>,
+    Option<UInt64Array>,
+    Option<FixedSizeListArray>,
+)> {
+    loop {
+        match entry.next() {
+            Some(Ok(entry)) => {
+                let path = entry.path();
+                if path.is_file() {
+                    if let Some(extension) = path.extension() {
+                        if extension == "parquet" {
+                            let file = File::open(path)?;
+                            let mut reader =
+                                ParquetRecordBatchReaderBuilder::try_new(file)?.build()?;
+
+                            let op_record_batch = reader.next();
+                            if let Some(record_batch_r) = op_record_batch {
+                                let record_batch = record_batch_r?;
+                                let id_list = record_batch
+                                    .column(0)
+                                    .as_any()
+                                    .downcast_ref::<UInt64Array>()
+                                    .ok_or_else(|| anyhow!("Failed to downcast to UInt64Array"))?
+                                    .clone();
+                                let pai_ids_list = record_batch
+                                    .column(1)
+                                    .as_any()
+                                    .downcast_ref::<FixedSizeListArray>()
+                                    .ok_or_else(|| {
+                                        anyhow!("Failed to downcast to FixedSizeListArray")
+                                    })?
+                                    .clone();
+                                return Ok((Some(reader), Some(id_list), Some(pai_ids_list)));
+                            }
+                        }
+                    }
+                }
+            }
+            Some(Err(e)) => {
+                return Err(anyhow!(e));
+            }
+            None => return Ok((None, None, None)),
+        }
+    }
+}
+
+impl PaiyamaBatch {
+    pub fn new<P: AsRef<Path>>(root: P) -> io::Result<Self> {
+        let entries = fs::read_dir(root)?;
+        Ok(Self {
+            entries,
+            batch_reader: None,
+            id_list: None,
+            pai_ids_list: None,
+            index: 0,
+        })
+    }
+}
+
+impl Iterator for PaiyamaBatch {
+    type Item = anyhow::Result<(u64, Vec<u32>)>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match (
+            &mut self.batch_reader,
+            &mut self.id_list,
+            &mut self.pai_ids_list,
+            self.index,
+        ) {
+            (None, _, _, _) => {
+                let result = next_entry(&mut self.entries);
+                if let Ok((Some(reader), Some(id_list), Some(pai_ids_list))) = result {
+                    let id = id_list.value(0);
+                    let array = pai_ids_list.value(0);
+                    let pai_ids = array
+                        .as_any()
+                        .downcast_ref::<UInt32Array>()
+                        .unwrap()
+                        .values();
+                    self.index = 1;
+                    self.batch_reader = Some(reader);
+                    self.id_list = Some(id_list);
+                    self.pai_ids_list = Some(pai_ids_list);
+                    return Some(Ok((id, pai_ids.to_vec())));
+                } else {
+                    return None;
+                }
+            }
+            (Some(ref mut batch_reader), Some(ref id_list), Some(ref pai_ids_list), index) => {
+                if index < id_list.len() {
+                    let id = id_list.value(index);
+                    let array = pai_ids_list.value(index);
+                    let pai_ids = array
+                        .as_any()
+                        .downcast_ref::<UInt32Array>()
+                        .unwrap()
+                        .values();
+                    self.index += 1;
+                    return Some(Ok((id, pai_ids.to_vec())));
+                } else {
+                    let result = next_batch(batch_reader);
+                    if let Ok((Some(id_list), Some(pai_ids_list))) = result {
+                        let id = id_list.value(0);
+                        let array = pai_ids_list.value(0);
+                        let pai_ids = array
+                            .as_any()
+                            .downcast_ref::<UInt32Array>()
+                            .unwrap()
+                            .values();
+                        self.id_list = Some(id_list);
+                        self.pai_ids_list = Some(pai_ids_list);
+                        self.index = 1;
+                        return Some(Ok((id, pai_ids.to_vec())));
+                    } else {
+                        let result = next_entry(&mut self.entries);
+                        if let Ok((Some(reader), Some(id_list), Some(pai_ids_list))) = result {
+                            let id = id_list.value(0);
+                            let array = pai_ids_list.value(0);
+                            let pai_ids = array
+                                .as_any()
+                                .downcast_ref::<UInt32Array>()
+                                .unwrap()
+                                .values();
+                            self.index = 1;
+                            self.batch_reader = Some(reader);
+                            self.id_list = Some(id_list);
+                            self.pai_ids_list = Some(pai_ids_list);
+                            return Some(Ok((id, pai_ids.to_vec())));
+                        } else {
+                            return None;
+                        }
+                    }
+                }
+            }
+            (_, _, _, _) => None,
+        }
+    }
 }
 
 #[derive(Default)]

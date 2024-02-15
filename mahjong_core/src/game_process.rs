@@ -170,6 +170,7 @@ impl GameStateT {
             let cursol: &mut u32;
 
             player.cursol = 14 + (idx * if idx < 2 { 31 } else { 30 });
+            player.kawahai_len = 0;
 
             if self.is_non_duplicate {
                 cursol = &mut self.taku_cursol;
