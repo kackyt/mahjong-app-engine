@@ -1,8 +1,6 @@
 use anyhow::anyhow;
 use chrono::Utc;
 use parquet::arrow::arrow_reader::{ParquetRecordBatchReader, ParquetRecordBatchReaderBuilder};
-use std::io;
-use std::path::Iter;
 use std::{path::Path, sync::Arc};
 
 //#[cfg(feature = "write-log")]
@@ -13,13 +11,14 @@ use arrow_array::{
     array::{ArrayRef, BooleanArray, Int32Array, ListArray, StringArray, UInt32Array, UInt64Array},
     RecordBatch,
 };
-use arrow_schema::{ArrowError, DataType, Field};
+use arrow_schema::{DataType, Field};
 use parquet::{
     arrow::arrow_writer::ArrowWriter,
     basic::{Compression, Encoding, GzipLevel},
     file::properties::*,
 };
-use std::fs::{self, File, ReadDir};
+use std::fs::{self, File};
+use walkdir::{IntoIter, WalkDir};
 
 fn num_to_hai(num_list: &[Option<u32>], has_aka: u32) -> String {
     let colors = ['m', 'p', 's', 'z'];
@@ -64,7 +63,7 @@ pub struct PlayLog {
 }
 
 pub struct PaiyamaBatch {
-    entries: ReadDir,
+    entries: IntoIter,
     batch_reader: Option<ParquetRecordBatchReader>,
     id_list: Option<UInt64Array>,
     pai_ids_list: Option<FixedSizeListArray>,
@@ -95,7 +94,7 @@ fn next_batch(
 }
 
 fn next_entry(
-    entry: &mut ReadDir,
+    entry: &mut IntoIter,
 ) -> anyhow::Result<(
     Option<ParquetRecordBatchReader>,
     Option<UInt64Array>,
@@ -135,24 +134,22 @@ fn next_entry(
                     }
                 }
             }
-            Some(Err(e)) => {
-                return Err(anyhow!(e));
-            }
+            Some(Err(e)) => return Err(anyhow!(e)),
             None => return Ok((None, None, None)),
         }
     }
 }
 
 impl PaiyamaBatch {
-    pub fn new<P: AsRef<Path>>(root: P) -> io::Result<Self> {
-        let entries = fs::read_dir(root)?;
-        Ok(Self {
+    pub fn new<P: AsRef<Path>>(root: P) -> Self {
+        let entries = WalkDir::new(root).into_iter();
+        Self {
             entries,
             batch_reader: None,
             id_list: None,
             pai_ids_list: None,
             index: 0,
-        })
+        }
     }
 }
 
