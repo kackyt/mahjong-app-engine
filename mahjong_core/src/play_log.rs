@@ -361,7 +361,9 @@ impl GameLog {
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
-        writer.close()?;
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
 
         Ok(())
     }
@@ -399,7 +401,9 @@ impl GamePlayerLog {
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
-        writer.close()?;
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
 
         Ok(())
     }
@@ -549,7 +553,9 @@ impl RuleLog {
         writer
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
-        writer.close()?;
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
         Ok(())
     }
 }
@@ -609,7 +615,9 @@ impl KyokuLog {
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
-        writer.close()?;
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
 
         Ok(())
     }
@@ -757,7 +765,10 @@ impl AgarisLog {
         writer
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
-        writer.close()?;
+
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
 
         Ok(())
     }
@@ -801,7 +812,9 @@ impl HaipaisLog {
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
-        writer.close()?;
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
 
         Ok(())
     }
@@ -856,7 +869,9 @@ impl ActionsLog {
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
-        writer.close()?;
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
 
         Ok(())
     }
@@ -895,7 +910,9 @@ impl NagareLog {
             .write(&batch)
             .map_err(|e| anyhow!("Failed to write batch to file: {}", e))?;
 
-        writer.close()?;
+        writer
+            .close()
+            .map_err(|e| anyhow!("Failed to close writer: {}", e))?;
 
         Ok(())
     }
