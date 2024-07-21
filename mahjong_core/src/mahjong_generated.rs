@@ -21,10 +21,10 @@ pub mod open_mahjong {
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 pub const ENUM_MIN_ACTION_TYPE: u32 = 0;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
-pub const ENUM_MAX_ACTION_TYPE: u32 = 6;
+pub const ENUM_MAX_ACTION_TYPE: u32 = 7;
 #[deprecated(since = "2.0.0", note = "Use associated constants instead. This will no longer be generated in 2021.")]
 #[allow(non_camel_case_types)]
-pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 7] = [
+pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 8] = [
   ActionType::ACTION_SYNC,
   ActionType::ACTION_SUTEHAI,
   ActionType::ACTION_CHII,
@@ -32,6 +32,7 @@ pub const ENUM_VALUES_ACTION_TYPE: [ActionType; 7] = [
   ActionType::ACTION_KAN,
   ActionType::ACTION_TSUMO,
   ActionType::ACTION_NAGASHI,
+  ActionType::ACTION_RIICHI,
 ];
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Default)]
@@ -46,9 +47,10 @@ impl ActionType {
   pub const ACTION_KAN: Self = Self(4);
   pub const ACTION_TSUMO: Self = Self(5);
   pub const ACTION_NAGASHI: Self = Self(6);
+  pub const ACTION_RIICHI: Self = Self(7);
 
   pub const ENUM_MIN: u32 = 0;
-  pub const ENUM_MAX: u32 = 6;
+  pub const ENUM_MAX: u32 = 7;
   pub const ENUM_VALUES: &'static [Self] = &[
     Self::ACTION_SYNC,
     Self::ACTION_SUTEHAI,
@@ -57,6 +59,7 @@ impl ActionType {
     Self::ACTION_KAN,
     Self::ACTION_TSUMO,
     Self::ACTION_NAGASHI,
+    Self::ACTION_RIICHI,
   ];
   /// Returns the variant's name or "" if unknown.
   pub fn variant_name(self) -> Option<&'static str> {
@@ -68,6 +71,7 @@ impl ActionType {
       Self::ACTION_KAN => Some("ACTION_KAN"),
       Self::ACTION_TSUMO => Some("ACTION_TSUMO"),
       Self::ACTION_NAGASHI => Some("ACTION_NAGASHI"),
+      Self::ACTION_RIICHI => Some("ACTION_RIICHI"),
       _ => None,
     }
   }
@@ -2633,16 +2637,17 @@ impl RuleT {
 // struct GameState, aligned to 8
 #[repr(transparent)]
 #[derive(Clone, Copy, PartialEq)]
-pub struct GameState(pub [u8; 3184]);
+pub struct GameState(pub [u8; 3200]);
 impl Default for GameState { 
   fn default() -> Self { 
-    Self([0; 3184])
+    Self([0; 3200])
   }
 }
 impl core::fmt::Debug for GameState {
   fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
     f.debug_struct("GameState")
       .field("title", &self.title())
+      .field("game_id", &self.game_id())
       .field("kyoku_id", &self.kyoku_id())
       .field("players", &self.players())
       .field("player_len", &self.player_len())
@@ -2700,6 +2705,7 @@ impl<'a> GameState {
   #[allow(clippy::too_many_arguments)]
   pub fn new(
     title: &FixedString,
+    game_id: &[u8; 16],
     kyoku_id: u64,
     players: &[Player; 4],
     player_len: u32,
@@ -2716,8 +2722,9 @@ impl<'a> GameState {
     seq: u32,
     rule: &Rule,
   ) -> Self {
-    let mut s = Self([0; 3184]);
+    let mut s = Self([0; 3200]);
     s.set_title(title);
+    s.set_game_id(game_id);
     s.set_kyoku_id(kyoku_id);
     s.set_players(players);
     s.set_player_len(player_len);
@@ -2748,6 +2755,20 @@ impl<'a> GameState {
     self.0[0..0 + 256].copy_from_slice(&x.0)
   }
 
+  pub fn game_id(&'a self) -> flatbuffers::Array<'a, u8, 16> {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::Array::follow(&self.0, 256) }
+  }
+
+  pub fn set_game_id(&mut self, items: &[u8; 16]) {
+    // Safety:
+    // Created from a valid Table for this object
+    // Which contains a valid array in this slot
+    unsafe { flatbuffers::emplace_scalar_array(&mut self.0, 256, items) };
+  }
+
   pub fn kyoku_id(&self) -> u64 {
     let mut mem = core::mem::MaybeUninit::<<u64 as EndianScalar>::Scalar>::uninit();
     // Safety:
@@ -2755,7 +2776,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[256..].as_ptr(),
+        self.0[272..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u64 as EndianScalar>::Scalar>(),
       );
@@ -2771,7 +2792,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[256..].as_mut_ptr(),
+        self.0[272..].as_mut_ptr(),
         core::mem::size_of::<<u64 as EndianScalar>::Scalar>(),
       );
     }
@@ -2781,7 +2802,7 @@ impl<'a> GameState {
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid array in this slot
-    unsafe { flatbuffers::Array::follow(&self.0, 264) }
+    unsafe { flatbuffers::Array::follow(&self.0, 280) }
   }
 
   pub fn set_players(&mut self, x: &[Player; 4]) {
@@ -2791,7 +2812,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy(
         x.as_ptr() as *const u8,
-        self.0.as_mut_ptr().add(264),
+        self.0.as_mut_ptr().add(280),
         2128,
       );
     }
@@ -2804,7 +2825,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[2392..].as_ptr(),
+        self.0[2408..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -2820,7 +2841,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[2392..].as_mut_ptr(),
+        self.0[2408..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -2833,7 +2854,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[2396..].as_ptr(),
+        self.0[2412..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -2849,7 +2870,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[2396..].as_mut_ptr(),
+        self.0[2412..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -2862,7 +2883,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[2400..].as_ptr(),
+        self.0[2416..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -2878,7 +2899,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[2400..].as_mut_ptr(),
+        self.0[2416..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -2891,7 +2912,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[2404..].as_ptr(),
+        self.0[2420..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -2907,7 +2928,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[2404..].as_mut_ptr(),
+        self.0[2420..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -2920,7 +2941,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[2408..].as_ptr(),
+        self.0[2424..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -2936,7 +2957,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[2408..].as_mut_ptr(),
+        self.0[2424..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -2949,7 +2970,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[2412..].as_ptr(),
+        self.0[2428..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -2965,7 +2986,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[2412..].as_mut_ptr(),
+        self.0[2428..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -2975,12 +2996,12 @@ impl<'a> GameState {
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid struct in this slot
-    unsafe { &*(self.0[2416..].as_ptr() as *const Taku) }
+    unsafe { &*(self.0[2432..].as_ptr() as *const Taku) }
   }
 
   #[allow(clippy::identity_op)]
   pub fn set_taku(&mut self, x: &Taku) {
-    self.0[2416..2416 + 684].copy_from_slice(&x.0)
+    self.0[2432..2432 + 684].copy_from_slice(&x.0)
   }
 
   pub fn taku_cursol(&self) -> u32 {
@@ -2990,7 +3011,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[3100..].as_ptr(),
+        self.0[3116..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -3006,7 +3027,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[3100..].as_mut_ptr(),
+        self.0[3116..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -3019,7 +3040,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[3104..].as_ptr(),
+        self.0[3120..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -3035,7 +3056,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[3104..].as_mut_ptr(),
+        self.0[3120..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -3048,7 +3069,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[3108..].as_ptr(),
+        self.0[3124..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -3064,7 +3085,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[3108..].as_mut_ptr(),
+        self.0[3124..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -3077,7 +3098,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[3112..].as_ptr(),
+        self.0[3128..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
       );
@@ -3093,7 +3114,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[3112..].as_mut_ptr(),
+        self.0[3128..].as_mut_ptr(),
         core::mem::size_of::<<bool as EndianScalar>::Scalar>(),
       );
     }
@@ -3106,7 +3127,7 @@ impl<'a> GameState {
     // Which contains a valid value in this slot
     EndianScalar::from_little_endian(unsafe {
       core::ptr::copy_nonoverlapping(
-        self.0[3116..].as_ptr(),
+        self.0[3132..].as_ptr(),
         mem.as_mut_ptr() as *mut u8,
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
@@ -3122,7 +3143,7 @@ impl<'a> GameState {
     unsafe {
       core::ptr::copy_nonoverlapping(
         &x_le as *const _ as *const u8,
-        self.0[3116..].as_mut_ptr(),
+        self.0[3132..].as_mut_ptr(),
         core::mem::size_of::<<u32 as EndianScalar>::Scalar>(),
       );
     }
@@ -3132,17 +3153,18 @@ impl<'a> GameState {
     // Safety:
     // Created from a valid Table for this object
     // Which contains a valid struct in this slot
-    unsafe { &*(self.0[3120..].as_ptr() as *const Rule) }
+    unsafe { &*(self.0[3136..].as_ptr() as *const Rule) }
   }
 
   #[allow(clippy::identity_op)]
   pub fn set_rule(&mut self, x: &Rule) {
-    self.0[3120..3120 + 60].copy_from_slice(&x.0)
+    self.0[3136..3136 + 60].copy_from_slice(&x.0)
   }
 
   pub fn unpack(&self) -> GameStateT {
     GameStateT {
       title: self.title().unpack(),
+      game_id: self.game_id().into(),
       kyoku_id: self.kyoku_id(),
       players: { let players = self.players(); flatbuffers::array_init(|i| players.get(i).unpack()) },
       player_len: self.player_len(),
@@ -3165,6 +3187,7 @@ impl<'a> GameState {
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct GameStateT {
   pub title: FixedStringT,
+  pub game_id: [u8; 16],
   pub kyoku_id: u64,
   pub players: [PlayerT; 4],
   pub player_len: u32,
@@ -3185,6 +3208,7 @@ impl GameStateT {
   pub fn pack(&self) -> GameState {
     GameState::new(
       &self.title.pack(),
+      &self.game_id,
       self.kyoku_id,
       &flatbuffers::array_init(|i| self.players[i].pack()),
       self.player_len,

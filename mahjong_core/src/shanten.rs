@@ -1,8 +1,9 @@
-use crate::mahjong_generated::open_mahjong::{PaiT, Mentsu, MentsuType, MentsuPai, MentsuFlag};
+use crate::mahjong_generated::open_mahjong::{Mentsu, MentsuFlag, MentsuPai, MentsuType, PaiT};
 use itertools::iproduct;
 
 /// 牌姿の内部表現
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
+#[repr(C)]
 pub struct PaiState {
     pub hai_count_m: [i32; 9],
     pub hai_count_p: [i32; 9],
@@ -94,7 +95,6 @@ pub fn mentsu_count(hai_count: &mut [i32; 9], n: usize) -> [(i32, i32, i32); 2] 
     max_count
 }
 
-
 /// すべての面子を抜き出す
 fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Vec<Mentsu>> {
     if n >= 9 {
@@ -110,13 +110,16 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
 
     // 順子を抜き出す
     if n < 7 && hai_count[n] > 0 && hai_count[n + 1] > 0 && hai_count[n + 2] > 0 {
-        let m = Mentsu::new(&[
-            MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
-            MentsuPai::new((n + suit * 9 + 1) as u8, 0, MentsuFlag::FLAG_NONE),
-            MentsuPai::new((n + suit * 9 + 2) as u8, 0, MentsuFlag::FLAG_NONE),
-            MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+        let m = Mentsu::new(
+            &[
+                MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new((n + suit * 9 + 1) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new((n + suit * 9 + 2) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+            ],
             3,
-            MentsuType::TYPE_SHUNTSU);
+            MentsuType::TYPE_SHUNTSU,
+        );
         hai_count[n] -= 1;
         hai_count[n + 1] -= 1;
         hai_count[n + 2] -= 1;
@@ -125,31 +128,40 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
         hai_count[n + 1] += 1;
         hai_count[n + 2] += 1;
 
-        shuntsu = r.into_iter().map(|mut x| {
-            x.insert(0, m);
-            x
-        }).collect();
+        shuntsu = r
+            .into_iter()
+            .map(|mut x| {
+                x.insert(0, m);
+                x
+            })
+            .collect();
     }
 
     let mut koutsu: Vec<Vec<Mentsu>> = vec![];
 
     // 刻子を抜き出す
     if hai_count[n] >= 3 {
-        let m = Mentsu::new(&[
-            MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
-            MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
-            MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
-            MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+        let m = Mentsu::new(
+            &[
+                MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new((n + suit * 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+            ],
             3,
-            MentsuType::TYPE_KOUTSU);
+            MentsuType::TYPE_KOUTSU,
+        );
         hai_count[n] -= 3;
         let k = all_of_suit_mentsu(suit, hai_count, n + 1);
         hai_count[n] += 3;
 
-        koutsu = k.into_iter().map(|mut x|{
-            x.insert(0, m);
-            x
-        }).collect();
+        koutsu = k
+            .into_iter()
+            .map(|mut x| {
+                x.insert(0, m);
+                x
+            })
+            .collect();
     }
 
     // println!("s{} {}: {:?} {:?}\r", suit, n, shuntsu, koutsu);
@@ -162,138 +174,174 @@ fn all_of_suit_mentsu(suit: usize, hai_count: &mut [i32; 9], n: usize) -> Vec<Ve
 }
 
 fn all_of_mentsu_without_atama(pai_state: &mut PaiState) -> Vec<Vec<Mentsu>> {
-
     let mut all_mentsu: Vec<Vec<Mentsu>> = vec![];
 
     let man = all_of_suit_mentsu(0, &mut pai_state.hai_count_m, 0);
     let pin = all_of_suit_mentsu(1, &mut pai_state.hai_count_p, 0);
     let sou = all_of_suit_mentsu(2, &mut pai_state.hai_count_s, 0);
 
-    all_mentsu = iproduct!(man, pin, sou).map(|(m, p, s)| {
-        [m, p, s].concat()
-    }).collect::<Vec<Vec<Mentsu>>>();
+    all_mentsu = iproduct!(man, pin, sou)
+        .map(|(m, p, s)| [m, p, s].concat())
+        .collect::<Vec<Vec<Mentsu>>>();
 
     // 字牌は刻子1通りのみ
     let mut zihai: Vec<Mentsu> = vec![];
 
     for n in 0..7 {
         if pai_state.hai_count_z[n] >= 3 {
-            let m = Mentsu::new(&[
-                MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+            let m = Mentsu::new(
+                &[
+                    MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ],
                 3,
-                MentsuType::TYPE_KOUTSU);
+                MentsuType::TYPE_KOUTSU,
+            );
             zihai.push(m);
         }
     }
 
-    all_mentsu.into_iter().map(|x| {
-        [x, zihai.clone()].concat()
-    }).collect::<Vec<Vec<Mentsu>>>()
+    all_mentsu
+        .into_iter()
+        .map(|x| [x, zihai.clone()].concat())
+        .collect::<Vec<Vec<Mentsu>>>()
 }
 
 pub fn all_of_mentsu(pai_state: &mut PaiState, n_fulo: usize) -> Vec<Vec<Mentsu>> {
     let mut all_mentsu: Vec<Vec<Mentsu>> = vec![];
     for n in 0..9 {
         if pai_state.hai_count_m[n] >= 2 {
-            let m = Mentsu::new(&[
-                MentsuPai::new(n as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(n as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+            let m = Mentsu::new(
+                &[
+                    MentsuPai::new(n as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(n as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ],
                 2,
-                MentsuType::TYPE_ATAMA);
+                MentsuType::TYPE_ATAMA,
+            );
             pai_state.hai_count_m[n] -= 2;
             let r = all_of_mentsu_without_atama(pai_state);
             pai_state.hai_count_m[n] += 2;
-            all_mentsu.extend(r.into_iter().map(|mut x| {
-                x.insert(0, m);
-                x
-            }).collect::<Vec<Vec<Mentsu>>>());
+            all_mentsu.extend(
+                r.into_iter()
+                    .map(|mut x| {
+                        x.insert(0, m);
+                        x
+                    })
+                    .collect::<Vec<Vec<Mentsu>>>(),
+            );
         }
 
         if pai_state.hai_count_p[n] >= 2 {
-            let m = Mentsu::new(&[
-                MentsuPai::new((n + 9) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new((n + 9) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+            let m = Mentsu::new(
+                &[
+                    MentsuPai::new((n + 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new((n + 9) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ],
                 2,
-                MentsuType::TYPE_ATAMA);
+                MentsuType::TYPE_ATAMA,
+            );
             pai_state.hai_count_p[n] -= 2;
             let r = all_of_mentsu_without_atama(pai_state);
             pai_state.hai_count_p[n] += 2;
-            all_mentsu.extend(r.into_iter().map(|mut x| {
-                x.insert(0, m);
-                x
-            }).collect::<Vec<Vec<Mentsu>>>());
+            all_mentsu.extend(
+                r.into_iter()
+                    .map(|mut x| {
+                        x.insert(0, m);
+                        x
+                    })
+                    .collect::<Vec<Vec<Mentsu>>>(),
+            );
         }
 
         if pai_state.hai_count_s[n] >= 2 {
-            let m = Mentsu::new(&[
-                MentsuPai::new((n + 18) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new((n + 18) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+            let m = Mentsu::new(
+                &[
+                    MentsuPai::new((n + 18) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new((n + 18) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ],
                 2,
-                MentsuType::TYPE_ATAMA);
+                MentsuType::TYPE_ATAMA,
+            );
             pai_state.hai_count_s[n] -= 2;
             let r = all_of_mentsu_without_atama(pai_state);
             pai_state.hai_count_s[n] += 2;
-            all_mentsu.extend(r.into_iter().map(|mut x| {
-                x.insert(0, m);
-                x
-            }).collect::<Vec<Vec<Mentsu>>>());
+            all_mentsu.extend(
+                r.into_iter()
+                    .map(|mut x| {
+                        x.insert(0, m);
+                        x
+                    })
+                    .collect::<Vec<Vec<Mentsu>>>(),
+            );
         }
 
         if n < 7 && pai_state.hai_count_z[n] >= 2 {
-            let m = Mentsu::new(&[
-                MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
-                MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE)],
+            let m = Mentsu::new(
+                &[
+                    MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new((n + 27) as u8, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                    MentsuPai::new(0, 0, MentsuFlag::FLAG_NONE),
+                ],
                 2,
-                MentsuType::TYPE_ATAMA);
+                MentsuType::TYPE_ATAMA,
+            );
             pai_state.hai_count_z[n] -= 2;
             let r = all_of_mentsu_without_atama(pai_state);
             pai_state.hai_count_z[n] += 2;
-            all_mentsu.extend(r.into_iter().map(|mut x| {
-                x.insert(0, m);
-                x
-            }).collect::<Vec<Vec<Mentsu>>>());
+            all_mentsu.extend(
+                r.into_iter()
+                    .map(|mut x| {
+                        x.insert(0, m);
+                        x
+                    })
+                    .collect::<Vec<Vec<Mentsu>>>(),
+            );
         }
     }
-    all_mentsu.into_iter().filter(|x| {
-        x.len() + n_fulo >= 5
-    }).collect::<Vec<Vec<Mentsu>>>()
+    all_mentsu
+        .into_iter()
+        .filter(|x| x.len() + n_fulo >= 5)
+        .collect::<Vec<Vec<Mentsu>>>()
 }
 
 impl PaiState {
     pub fn from(value: &[PaiT]) -> Self {
-        let mut hai_count_m: [i32; 9] = [0; 9];
-        let mut hai_count_p: [i32; 9] = [0; 9];
-        let mut hai_count_s: [i32; 9] = [0; 9];
-        let mut hai_count_z: [i32; 7] = [0; 7];
+        let mut state = PaiState::default();
+        state.init(value);
+        state
+    }
+
+    pub fn init(&mut self, value: &[PaiT]) {
+        for n in 0..9 {
+            self.hai_count_m[n] = 0;
+            self.hai_count_p[n] = 0;
+            self.hai_count_s[n] = 0;
+        }
+        for n in 0..7 {
+            self.hai_count_z[n] = 0;
+        }
 
         for hai in value.iter() {
             let num = hai.pai_num as usize;
             if num < 9 {
-                hai_count_m[num] += 1;
+                self.hai_count_m[num] += 1;
             } else if num < 18 {
-                hai_count_p[num - 9] += 1;
+                self.hai_count_p[num - 9] += 1;
             } else if num < 27 {
-                hai_count_s[num - 18] += 1;
+                self.hai_count_s[num - 18] += 1;
             } else {
-                hai_count_z[num - 27] += 1;
+                self.hai_count_z[num - 27] += 1;
             }
-        }
-        PaiState {
-            hai_count_m,
-            hai_count_p,
-            hai_count_s,
-            hai_count_z,
         }
     }
 

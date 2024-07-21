@@ -19,6 +19,7 @@ enum ActionType : uint {
     ACTION_KAN,
     ACTION_TSUMO,
     ACTION_NAGASHI,
+    ACTION_RIICHI,
 }
 
 enum MentsuType : ubyte {
@@ -84,29 +85,31 @@ struct Player {
 
 struct Rule {
     enable_kuitan: bool;
-    enable_kansaki: bool;
+    enable_atozuke: bool;
     enable_pao: bool;
-    double_ron_type: uint;
-    initial_score: uint;
     enable_tobi: bool;
     enable_wareme: bool;
+    enable_kuinaoshi: bool;
+    enable_kiriage: bool;
+    enable_agariyame: bool;
+    enable_minus_riichi: bool;
+    enable_ryanhan_shibari: bool;
+    enable_keiten: bool;
+    enable_glass_pai: bool;
     aka_type: uint;
     shanyu_score: int;
     nannyu_score: int;
-    enable_kuinaoshi: bool;
     uradora_type: int;
-    enable_minus_riichi: bool;
-    enable_ryanhan_shibari: bool;
     furiten_riichi_type: uint;
-    enable_keiten: bool;
     oyanagare_type: uint;
-    kan_in_riichi: uint;
-    enable_kiriage: bool;
-    enable_agariyame: bool;
+    double_ron_type: uint;
+    initial_score: uint;
+    kan_in_riichi_type: uint;
 }
 
 struct GameState {
     title: FixedString;
+    game_id: [ubyte: 16];
     kyoku_id: uint64;
     players: [Player: 4];
     player_len: uint;

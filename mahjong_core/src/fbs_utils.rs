@@ -1,6 +1,8 @@
 use std::{fmt::Display, ops::Range};
 
-use crate::mahjong_generated::open_mahjong::{FixedString, FixedStringT, Pai, PaiT, PlayerT, Taku, TakuT};
+use crate::mahjong_generated::open_mahjong::{
+    FixedString, FixedStringT, Pai, PaiT, PlayerT, Taku, TakuT,
+};
 use anyhow::{bail, ensure};
 use rand::prelude::SliceRandom;
 
@@ -10,9 +12,9 @@ impl Display for PaiT {
         let colors = ["m", "p", "s", "z"];
 
         let num = self.pai_num;
-    
+
         let suit = (num / 9) as usize;
-    
+
         write!(f, "{}{}", colors[suit], (num % 9) + 1)
     }
 }
@@ -33,8 +35,7 @@ impl PartialOrd for PaiT {
     }
 }
 
-impl Eq for PaiT {
-}
+impl Eq for PaiT {}
 
 impl PaiT {
     pub fn get_pai_id(&self) -> u32 {
@@ -53,6 +54,10 @@ impl Ord for PaiT {
     }
 }
 
+fn copy_slice_partial<T: Copy>(dst: &mut [T], src: &[T]) {
+    let min_len = src.len().min(dst.len());
+    dst[..min_len].copy_from_slice(&src[..min_len]);
+}
 
 impl From<&[u8]> for FixedStringT {
     fn from(src: &[u8]) -> Self {
@@ -62,7 +67,7 @@ impl From<&[u8]> for FixedStringT {
         let n1 = chunks.next();
 
         if let Some(n) = n1 {
-            s.n1.copy_from_slice(n);
+            copy_slice_partial(&mut s.n1, n);
         } else {
             return s;
         }
@@ -70,7 +75,7 @@ impl From<&[u8]> for FixedStringT {
         let n2 = chunks.next();
 
         if let Some(n) = n2 {
-            s.n2.copy_from_slice(n);
+            copy_slice_partial(&mut s.n2, n);
         } else {
             return s;
         }
@@ -78,7 +83,7 @@ impl From<&[u8]> for FixedStringT {
         let n3 = chunks.next();
 
         if let Some(n) = n3 {
-            s.n3.copy_from_slice(n);
+            copy_slice_partial(&mut s.n3, n);
         } else {
             return s;
         }
@@ -86,15 +91,14 @@ impl From<&[u8]> for FixedStringT {
         let n4 = chunks.next();
 
         if let Some(n) = n4 {
-            s.n4.copy_from_slice(n);
-        } else {
+            copy_slice_partial(&mut s.n4, n);
             return s;
         }
 
         let n5 = chunks.next();
 
         if let Some(n) = n5 {
-            s.n5.copy_from_slice(n);
+            copy_slice_partial(&mut s.n5, n);
         } else {
             return s;
         }
@@ -102,7 +106,7 @@ impl From<&[u8]> for FixedStringT {
         let n6 = chunks.next();
 
         if let Some(n) = n6 {
-            s.n6.copy_from_slice(n);
+            copy_slice_partial(&mut s.n6, n);
         } else {
             return s;
         }
@@ -110,7 +114,7 @@ impl From<&[u8]> for FixedStringT {
         let n7 = chunks.next();
 
         if let Some(n) = n7 {
-            s.n7.copy_from_slice(n);
+            copy_slice_partial(&mut s.n7, n);
         } else {
             return s;
         }
@@ -118,7 +122,7 @@ impl From<&[u8]> for FixedStringT {
         let n8 = chunks.next();
 
         if let Some(n) = n8 {
-            s.n8.copy_from_slice(n);
+            copy_slice_partial(&mut s.n8, n);
         }
 
         s
@@ -160,6 +164,12 @@ impl Into<Vec<u8>> for FixedString {
 
 pub trait GetTsumo {
     fn get_tsumohai(&self) -> Option<PaiT>;
+}
+
+impl PlayerT {
+    pub fn is_registered(&self) -> bool {
+        self.name.n1[0] != 0
+    }
 }
 
 pub trait TakuControl {
@@ -228,12 +238,10 @@ impl TakuControl for Taku {
     }
 
     fn load(list: &[u32]) -> Self {
-        let hai_array: Vec<Pai> = list.into_iter().map(|x| Pai::new(
-            (x >> 2) as u8,
-            (x & 3) as u8,
-            false,
-            false,
-            false)).collect();
+        let hai_array: Vec<Pai> = list
+            .into_iter()
+            .map(|x| Pai::new((x >> 2) as u8, (x & 3) as u8, false, false, false))
+            .collect();
         let mut dst = [Pai::new(0, 0, false, false, false); 32];
         let mut dst2 = [Pai::new(0, 0, false, false, false); 8];
         let mut s = Self::new(&dst, &dst, &dst, &dst, &dst2, 0);
@@ -315,11 +323,10 @@ impl TakuControl for TakuT {
             } else {
                 rend = self.n1.len();
             }
-            let mut nx:Vec<PaiT> = self.n1[rstart..rend].iter().cloned().collect();
+            let mut nx: Vec<PaiT> = self.n1[rstart..rend].iter().cloned().collect();
 
             v.append(&mut nx);
         }
-
 
         if st.0 <= 1 && ed.0 >= 1 {
             if st.0 == 1 {
@@ -332,7 +339,7 @@ impl TakuControl for TakuT {
             } else {
                 rend = self.n2.len();
             }
-            let mut nx:Vec<PaiT> = self.n2[rstart..rend].iter().cloned().collect();
+            let mut nx: Vec<PaiT> = self.n2[rstart..rend].iter().cloned().collect();
 
             v.append(&mut nx);
         }
@@ -348,7 +355,7 @@ impl TakuControl for TakuT {
             } else {
                 rend = self.n3.len();
             }
-            let mut nx:Vec<PaiT> = self.n3[rstart..rend].iter().cloned().collect();
+            let mut nx: Vec<PaiT> = self.n3[rstart..rend].iter().cloned().collect();
 
             v.append(&mut nx);
         }
@@ -364,7 +371,7 @@ impl TakuControl for TakuT {
             } else {
                 rend = self.n4.len();
             }
-            let mut nx:Vec<PaiT> = self.n4[rstart..rend].iter().cloned().collect();
+            let mut nx: Vec<PaiT> = self.n4[rstart..rend].iter().cloned().collect();
 
             v.append(&mut nx);
         }
@@ -380,7 +387,7 @@ impl TakuControl for TakuT {
             } else {
                 rend = self.n5.len();
             }
-            let mut nx:Vec<PaiT> = self.n5[rstart..rend].iter().cloned().collect();
+            let mut nx: Vec<PaiT> = self.n5[rstart..rend].iter().cloned().collect();
 
             v.append(&mut nx);
         }

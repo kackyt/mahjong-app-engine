@@ -1,12 +1,19 @@
+use crate::{
+    agari::{add_machi_to_mentsu, Agari, AgariBehavior},
+    fbs_utils::TakuControl,
+    mahjong_generated::open_mahjong::{ActionType, GameStateT, PaiT, PlayerT, RuleT, TakuT},
+    play_log::PlayLog,
+    shanten::{all_of_mentsu, PaiState},
+};
 use anyhow::{bail, ensure};
 use chrono::Utc;
 use itertools::Itertools;
-use crate::{
-    agari::{add_machi_to_mentsu, Agari, AgariBehavior}, fbs_utils::TakuControl, mahjong_generated::open_mahjong::{ActionType, GameStateT, PaiT, PlayerT, RuleT, TakuT}, play_log::PlayLog, shanten::{all_of_mentsu, PaiState}
-};
+use rand::seq::SliceRandom;
+use uuid::Uuid;
 
-const DORA_START_INDEX : usize = 0;
-const URADORA_START_INDEX : usize = 5;
+const DORA_START_INDEX: usize = 0;
+const URADORA_START_INDEX: usize = 5;
+const START_OF_YAMA: [u32; 4] = [14, 45, 75, 105];
 
 impl RuleT {
     pub fn update_to_default(&mut self) {
@@ -26,20 +33,67 @@ impl RuleT {
         self.enable_keiten = true;
         self.oyanagare_type = 0x0f;
         self.kan_in_riichi = 1;
-        self.enable_kiriage = false;        
+        self.enable_kiriage = false;
     }
 }
 
-
 impl GameStateT {
-    pub fn create(&mut self, title: &[u8], player_len: u32) {
+    pub fn create(&mut self, title: &[u8], player_len: u32, play_log: &mut PlayLog) {
         self.player_len = player_len;
         self.rule.update_to_default();
+        self.title = title.into();
+        let uuid = Uuid::new_v4();
+        self.game_id = uuid.into_bytes();
+        let dt = Utc::now();
 
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];
             player.score = self.rule.initial_score as i32;
         }
+
+        play_log.append_game_log(uuid.hyphenated().to_string(), dt.timestamp() as u64);
+    }
+
+    pub fn register_player(
+        &mut self,
+        name: &[u8],
+        play_log: &mut PlayLog,
+    ) -> anyhow::Result<usize> {
+        // registered == falseなplayerのindexのリストを作る
+        let unregistered_index = self
+            .players
+            .iter()
+            .enumerate()
+            .filter(|(_, x)| !x.is_registered())
+            .map(|(i, _)| i)
+            .collect_vec();
+        ensure!(unregistered_index.len() != 0, "player is full");
+
+        // unregistered_indexからランダムに選ぶ
+        let mut rng = rand::thread_rng();
+        let chosen_index = unregistered_index.choose(&mut rng);
+
+        // chosen_indexがNoneならば、エラー
+        ensure!(chosen_index.is_some(), "player index choose error");
+
+        let index = chosen_index.unwrap();
+        let uuid = Uuid::from_bytes_ref(&self.game_id);
+
+        self.players[*index].name = name.into();
+
+        play_log.append_game_player_log(
+            uuid.hyphenated().to_string(),
+            String::from_utf8(name.to_vec())?,
+            *index as i32,
+        );
+
+        Ok(*index)
+    }
+
+    pub fn are_players_all_registered(&self) -> bool {
+        self.players[..self.player_len as usize]
+            .iter()
+            .all(|x| x.is_registered())
     }
 
     pub fn shuffle(&mut self) {
@@ -72,9 +126,12 @@ impl GameStateT {
         if self.is_non_duplicate {
             136 - self.taku_cursol
         } else {
-            let start_of_yama = [14, 45, 75, 105];
-            136 - 14 - self.players[0..self.player_len as usize].iter().enumerate().map(
-                |(idx, x)| x.cursol - start_of_yama[idx]).sum::<u32>()
+            136 - 14
+                - self.players[0..self.player_len as usize]
+                    .iter()
+                    .enumerate()
+                    .map(|(idx, x)| x.cursol - START_OF_YAMA[idx])
+                    .sum::<u32>()
         }
     }
 
@@ -92,27 +149,37 @@ impl GameStateT {
             kazes[idx as usize] = Some(self.get_zikaze(idx as usize) as i32);
         }
 
+        let uuid = Uuid::from_bytes_ref(&self.game_id);
+
         play_log.append_kyoku_log(
             self.kyoku_id,
-            String::from(""),
+            uuid.hyphenated().to_string(),
             0,
             self.tsumobou as i32,
             self.riichibou as i32,
-            &self.players.iter().map(|p| Some(p.score)).collect::<Vec<Option<i32>>>(), &kazes);
-
+            &self
+                .players
+                .iter()
+                .map(|p| Some(p.score))
+                .collect::<Vec<Option<i32>>>(),
+            &kazes,
+        );
 
         for idx in 0..self.player_len {
             let player = &mut self.players[idx as usize];
             let cursol: &mut u32;
 
             player.cursol = 14 + (idx * if idx < 2 { 31 } else { 30 });
+            player.kawahai_len = 0;
 
             if self.is_non_duplicate {
                 cursol = &mut self.taku_cursol;
             } else {
                 cursol = &mut player.cursol;
             }
-            let r = self.taku.get_range((*cursol as usize)..(*cursol+13) as usize);
+            let r = self
+                .taku
+                .get_range((*cursol as usize)..(*cursol + 13) as usize);
 
             if let Ok(mut v) = r {
                 v.sort_unstable();
@@ -122,9 +189,14 @@ impl GameStateT {
                 player.tehai_len = 13;
             }
 
-            play_log.append_haipais_log(self.kyoku_id, idx as i32, 
+            play_log.append_haipais_log(
+                self.kyoku_id,
+                idx as i32,
                 &player.tehai[..player.tehai_len as usize]
-                .into_iter().map(|x| Some(x.get_pai_id())).collect::<Vec<Option<u32>>>());
+                    .into_iter()
+                    .map(|x| Some(x.get_pai_id()))
+                    .collect::<Vec<Option<u32>>>(),
+            );
 
             *cursol += 13;
         }
@@ -147,9 +219,10 @@ impl GameStateT {
         play_log.append_actions_log(
             self.kyoku_id,
             self.teban as i32,
-            self.seq as i32, 
+            self.seq as i32,
             String::from("tsumo"),
-            player.tsumohai.get_pai_id());
+            player.tsumohai.get_pai_id(),
+        );
         self.seq += 1;
 
         self.next_cursol();
@@ -157,9 +230,17 @@ impl GameStateT {
         Ok(())
     }
 
-    pub fn sutehai(&mut self, play_log: &mut PlayLog, index: usize) {
+    pub fn sutehai(&mut self, play_log: &mut PlayLog, index: usize, is_riichi: bool) {
         let player = &mut self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
+
+        if is_riichi {
+            player.is_riichi = true;
+            player.is_ippatsu = true;
+            player.score -= 1000;
+        } else {
+            player.is_ippatsu = false;
+        }
 
         if index != 13 {
             let kawahai = tehai.remove(index);
@@ -178,7 +259,8 @@ impl GameStateT {
             self.teban as i32,
             self.seq as i32,
             String::from("sutehai"),
-            player.kawahai[player.kawahai_len as usize].get_pai_id());
+            player.kawahai[player.kawahai_len as usize].get_pai_id(),
+        );
         self.seq += 1;
 
         player.kawahai_len += 1;
@@ -205,11 +287,20 @@ impl GameStateT {
 
         ensure!(all_mentsu_w_machi.len() > 0, "チョンボ！");
 
-        let best_agari = self.get_best_agari(self.teban as usize, &all_mentsu_w_machi, &Vec::new(), 0)?;
+        let best_agari =
+            self.get_best_agari(self.teban as usize, &all_mentsu_w_machi, &Vec::new(), 0)?;
         self.players[self.teban as usize].score += best_agari.score;
 
-        let dora_orig = self.get_dora().iter().map(|x| Some(x.get_pai_id())).collect_vec();
-        let uradora_orig = self.get_uradora().iter().map(|x| Some(x.get_pai_id())).collect_vec();
+        let dora_orig = self
+            .get_dora()
+            .iter()
+            .map(|x| Some(x.get_pai_id()))
+            .collect_vec();
+        let uradora_orig = self
+            .get_uradora()
+            .iter()
+            .map(|x| Some(x.get_pai_id()))
+            .collect_vec();
 
         play_log.append_agaris_log(
             self.kyoku_id,
@@ -227,37 +318,48 @@ impl GameStateT {
             self.teban as i32,
             &[Some(best_agari.score), Some(0), Some(0), Some(0)],
             false,
-            0);
+            0,
+        );
 
         Ok(best_agari)
     }
 
     pub fn nagare(&mut self, play_log: &mut PlayLog) {
         let score = [Some(-3000), Some(0), Some(0), Some(0)];
-        play_log.append_nagare_log(
-            self.kyoku_id,
-            String::from("流局"),
-            &score
-        );
+        play_log.append_nagare_log(self.kyoku_id, String::from("流局"), &score);
     }
 
-    pub fn action(&mut self, play_log: &mut PlayLog, action_type: ActionType, player_index: usize, param: u32) -> anyhow::Result<()> {
+    pub fn action(
+        &mut self,
+        play_log: &mut PlayLog,
+        action_type: ActionType,
+        player_index: usize,
+        param: u32,
+    ) -> anyhow::Result<()> {
         match action_type {
+            ActionType::ACTION_RIICHI => {
+                if player_index == self.teban as usize {
+                    self.sutehai(play_log, param as usize, true);
+                    Ok(())
+                } else {
+                    bail!("not teban")
+                }
+            }
             ActionType::ACTION_SYNC => {
                 if player_index == self.teban as usize {
                     self.tsumo(play_log)
                 } else {
                     Ok(())
                 }
-            },
+            }
             ActionType::ACTION_SUTEHAI => {
                 if player_index == self.teban as usize {
-                    self.sutehai(play_log, param as usize);
+                    self.sutehai(play_log, param as usize, false);
                     Ok(())
                 } else {
                     bail!("not teban")
                 }
-            },
+            }
             ActionType::ACTION_CHII => todo!(),
             ActionType::ACTION_PON => todo!(),
             ActionType::ACTION_KAN => todo!(),
@@ -268,7 +370,7 @@ impl GameStateT {
                 } else {
                     bail!("not teban")
                 }
-            },
+            }
             ActionType::ACTION_NAGASHI => todo!(),
             _ => todo!(),
         }
