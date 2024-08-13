@@ -285,7 +285,7 @@ impl GameStateT {
         let all_mentsu = all_of_mentsu(&mut state, 0);
         let all_mentsu_w_machi = add_machi_to_mentsu(&all_mentsu, &player.tsumohai.pack());
 
-        ensure!(all_mentsu_w_machi.len() > 0, "チョンボ！");
+        ensure!(all_mentsu_w_machi.len() > 0, "和了ではありません");
 
         let best_agari =
             self.get_best_agari(self.teban as usize, &all_mentsu_w_machi, &Vec::new(), 0)?;
