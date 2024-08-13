@@ -1,6 +1,8 @@
 use anyhow::bail;
 
-use crate::mahjong_generated::open_mahjong::{Mentsu, Pai, MentsuFlag, GameStateT, MentsuType};
+use crate::mahjong_generated::open_mahjong::{
+    GameStateT, Mentsu, MentsuFlag, MentsuType, Pai, Player, PlayerT,
+};
 
 #[derive(Default, Debug)]
 pub struct Shuntsu {
@@ -37,9 +39,8 @@ pub struct AgariState {
     pub kokushi: bool,
     pub churen: bool,
     pub bakaze: u32,
-    pub zikaze: u32
+    pub zikaze: u32,
 }
-
 
 #[derive(Default, Debug)]
 pub struct Agari {
@@ -49,13 +50,19 @@ pub struct Agari {
     pub yaku: Vec<(String, i32)>, // 役名, 飜数
 }
 
-
 fn is_tanki(mentsu: &Mentsu) -> bool {
-    mentsu.pai_list().iter().any(|x| x.flag() == MentsuFlag::FLAG_AGARI)
+    mentsu
+        .pai_list()
+        .iter()
+        .any(|x| x.flag() == MentsuFlag::FLAG_AGARI)
 }
 
 fn is_kanchan(mentsu: &Mentsu) -> bool {
-    let index = mentsu.pai_list().iter().enumerate().find(|(_, x)| x.flag() == MentsuFlag::FLAG_AGARI);
+    let index = mentsu
+        .pai_list()
+        .iter()
+        .enumerate()
+        .find(|(_, x)| x.flag() == MentsuFlag::FLAG_AGARI);
 
     if let Some((idx, _)) = index {
         if idx == 1 {
@@ -67,7 +74,11 @@ fn is_kanchan(mentsu: &Mentsu) -> bool {
 }
 
 fn is_penchan(mentsu: &Mentsu) -> bool {
-    let index = mentsu.pai_list().iter().enumerate().find(|(_, x)| x.flag() == MentsuFlag::FLAG_AGARI);
+    let index = mentsu
+        .pai_list()
+        .iter()
+        .enumerate()
+        .find(|(_, x)| x.flag() == MentsuFlag::FLAG_AGARI);
 
     if let Some((idx, pai)) = index {
         if (idx == 2 && (pai.pai_num() % 9) == 2) || (idx == 0 && (pai.pai_num() % 9) == 6) {
@@ -78,14 +89,24 @@ fn is_penchan(mentsu: &Mentsu) -> bool {
     false
 }
 
-
 pub trait AgariBehavior {
     fn get_agari(&self, who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>) -> AgariState;
-    fn get_condition_yaku(&self, who: usize) -> Vec<(String, i32)>;
-    fn get_dora_yaku(&self, who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>, nukidora: usize) -> Vec<(String, i32)>;
-    fn get_best_agari(&self, who: usize, mentsu: &Vec<Vec<Mentsu>>, fulo: &Vec<Mentsu>, nukidora: usize) -> anyhow::Result<Agari>;
+    fn get_condition_yaku(&self, who: usize, state: &AgariState) -> Vec<(String, i32)>;
+    fn get_dora_yaku(
+        &self,
+        who: usize,
+        mentsu: &Vec<Mentsu>,
+        fulo: &Vec<Mentsu>,
+        nukidora: usize,
+    ) -> Vec<(String, i32)>;
+    fn get_best_agari(
+        &self,
+        who: usize,
+        mentsu: &Vec<Vec<Mentsu>>,
+        fulo: &Vec<Mentsu>,
+        nukidora: usize,
+    ) -> anyhow::Result<Agari>;
 }
-
 
 pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Mentsu>>, p: &Pai) -> Vec<Vec<Mentsu>> {
     let mut result = Vec::new();
@@ -107,17 +128,21 @@ pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Mentsu>>, p: &Pai) -> Vec<Vec<Mentsu
         if !positions.is_empty() {
             // ツモのすべての組み合わせを生成
             for &pos in &positions {
-                let temp_vecs = mentsu_vec.iter().enumerate().map(|(idx, mentsu)| {
-                    if idx == pos.0 {
-                        let mut mentsu_t = mentsu.unpack();
-                        let pai = &mut mentsu_t.pai_list[pos.1];
-                        pai.flag = MentsuFlag::FLAG_AGARI;
+                let temp_vecs = mentsu_vec
+                    .iter()
+                    .enumerate()
+                    .map(|(idx, mentsu)| {
+                        if idx == pos.0 {
+                            let mut mentsu_t = mentsu.unpack();
+                            let pai = &mut mentsu_t.pai_list[pos.1];
+                            pai.flag = MentsuFlag::FLAG_AGARI;
 
-                        mentsu_t.pack()
-                    } else {
-                        mentsu.clone()
-                    }
-                }).collect::<Vec<Mentsu>>();
+                            mentsu_t.pack()
+                        } else {
+                            mentsu.clone()
+                        }
+                    })
+                    .collect::<Vec<Mentsu>>();
                 result.push(temp_vecs);
             }
         }
@@ -125,7 +150,6 @@ pub fn add_machi_to_mentsu(mentsu: &Vec<Vec<Mentsu>>, p: &Pai) -> Vec<Vec<Mentsu
 
     result
 }
-
 
 fn dora_pai_num(pai_num: u8) -> u8 {
     // 北
@@ -143,6 +167,23 @@ fn dora_pai_num(pai_num: u8) -> u8 {
     }
 
     pai_num + 1
+}
+
+// 状態役
+fn is_riichi(_state: &AgariState, player: &PlayerT) -> Option<(String, i32)> {
+    if player.is_riichi {
+        Some(("立直".to_string(), 1))
+    } else {
+        None
+    }
+}
+
+fn is_ippatsu(_state: &AgariState, player: &PlayerT) -> Option<(String, i32)> {
+    if player.is_ippatsu {
+        Some(("一発".to_string(), 1))
+    } else {
+        None
+    }
 }
 
 impl AgariBehavior for GameStateT {
@@ -192,7 +233,7 @@ impl AgariBehavior for GameStateT {
                         if num >= 31 {
                             agari.fu += 2;
                         }
-    
+
                         agari.n_zihai += 1;
                         agari.n_yaochu += 1;
                         agari.toitsu.z[(num - 27) as usize] += 1;
@@ -203,11 +244,11 @@ impl AgariBehavior for GameStateT {
                     } else {
                         agari.toitsu.m[(num % 9) as usize] += 1;
                     }
-    
+
                     if (num % 9) == 0 || (num % 9) == 8 {
                         agari.n_yaochu += 1;
-                    }    
-                },
+                    }
+                }
                 MentsuType::TYPE_KOUTSU => {
                     agari.n_koutsu += 1;
                     agari.n_ankou += 1;
@@ -245,7 +286,7 @@ impl AgariBehavior for GameStateT {
                     }
 
                     agari.fu += fu;
-                },
+                }
                 MentsuType::TYPE_SHUNTSU => {
                     agari.n_shuntsu += 1;
                     if is_kanchan(item) {
@@ -321,7 +362,7 @@ impl AgariBehavior for GameStateT {
                     }
 
                     agari.fu += fu;
-                },
+                }
                 MentsuType::TYPE_MINKAN => {
                     agari.n_kantsu += 1;
                     let mut fu = 8;
@@ -357,7 +398,7 @@ impl AgariBehavior for GameStateT {
                     }
 
                     agari.fu += fu;
-                },
+                }
                 MentsuType::TYPE_KOUTSU => {
                     agari.n_koutsu += 1;
                     let mut fu = 2;
@@ -394,7 +435,7 @@ impl AgariBehavior for GameStateT {
                     }
 
                     agari.fu += fu;
-                },
+                }
                 MentsuType::TYPE_SHUNTSU => {
                     agari.n_shuntsu += 1;
                     let num = item.pai_list().get(0).pai_num();
@@ -423,7 +464,7 @@ impl AgariBehavior for GameStateT {
                 _ => {}
             }
         }
-        
+
         if agari.n_toitsu >= 7 {
             // チートイツ
             agari.fu = 25;
@@ -448,25 +489,53 @@ impl AgariBehavior for GameStateT {
         agari
     }
 
-    fn get_condition_yaku(&self, who: usize) -> Vec<(String, i32)> {
-        vec![]
+    fn get_condition_yaku(&self, who: usize, state: &AgariState) -> Vec<(String, i32)> {
+        let check_list = [is_riichi, is_ippatsu];
+
+        check_list
+            .iter()
+            .flat_map(|f| f(state, &self.players[who]))
+            .collect()
     }
 
-    fn get_dora_yaku(&self, _who: usize, mentsu: &Vec<Mentsu>, fulo: &Vec<Mentsu>, nukidora: usize) -> Vec<(String, i32)> {
+    fn get_dora_yaku(
+        &self,
+        _who: usize,
+        mentsu: &Vec<Mentsu>,
+        fulo: &Vec<Mentsu>,
+        nukidora: usize,
+    ) -> Vec<(String, i32)> {
         let mut ret = Vec::new();
         let dora_pais = self.get_dora();
         let uradora_pais = self.get_uradora();
 
-        let dora_num = mentsu.iter().chain(fulo.iter()).flat_map(|m| {
-            m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
-                dora_pais.iter().filter(|d| dora_pai_num(d.pai_num) == p.pai_num()).count()
+        let dora_num = mentsu
+            .iter()
+            .chain(fulo.iter())
+            .flat_map(|m| {
+                m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
+                    dora_pais
+                        .iter()
+                        .filter(|d| dora_pai_num(d.pai_num) == p.pai_num())
+                        .count()
+                })
             })
-        }).reduce(|acc, e| acc + e).unwrap_or(0) + nukidora;
-        let uradora_num = mentsu.iter().chain(fulo.iter()).flat_map(|m| {
-            m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
-                uradora_pais.iter().filter(|d| dora_pai_num(d.pai_num) == p.pai_num()).count()
+            .reduce(|acc, e| acc + e)
+            .unwrap_or(0)
+            + nukidora;
+        let uradora_num = mentsu
+            .iter()
+            .chain(fulo.iter())
+            .flat_map(|m| {
+                m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
+                    uradora_pais
+                        .iter()
+                        .filter(|d| dora_pai_num(d.pai_num) == p.pai_num())
+                        .count()
+                })
             })
-        }).reduce(|acc, e| acc + e).unwrap_or(0);
+            .reduce(|acc, e| acc + e)
+            .unwrap_or(0);
 
         if dora_num > 0 {
             ret.push(("ドラ".to_string(), dora_num as i32));
@@ -478,14 +547,23 @@ impl AgariBehavior for GameStateT {
         ret
     }
 
-    fn get_best_agari(&self, who: usize, mentsu: &Vec<Vec<Mentsu>>, fulo: &Vec<Mentsu>, nukidora: usize) -> anyhow::Result<Agari> {
-        let ret = mentsu.iter().map(|m| {
-            let agari = self.get_agari(who, m, fulo);
-            let mut yakus = self.get_condition_yaku(who);
-            yakus.extend(agari.get_yaku_list());
-            yakus.extend(self.get_dora_yaku(who, m, fulo, nukidora));
-            agari.get_agari(&yakus)
-        }).max_by_key(|x| x.score);
+    fn get_best_agari(
+        &self,
+        who: usize,
+        mentsu: &Vec<Vec<Mentsu>>,
+        fulo: &Vec<Mentsu>,
+        nukidora: usize,
+    ) -> anyhow::Result<Agari> {
+        let ret = mentsu
+            .iter()
+            .map(|m| {
+                let agari = self.get_agari(who, m, fulo);
+                let mut yakus = self.get_condition_yaku(who, &agari);
+                yakus.extend(agari.get_yaku_list());
+                yakus.extend(self.get_dora_yaku(who, m, fulo, nukidora));
+                agari.get_agari(&yakus)
+            })
+            .max_by_key(|x| x.score);
 
         if let Some(x) = ret {
             Ok(x)
@@ -495,20 +573,11 @@ impl AgariBehavior for GameStateT {
     }
 }
 
-
 const KAZE_STR: [char; 4] = ['東', '南', '西', '北'];
 
 fn is_menzen_tsumo(state: &AgariState) -> Option<(String, i32)> {
     if state.menzen && state.tsumo {
         Some(("門前清自摸和".to_string(), 1))
-    } else {
-        None
-    }
-}
-
-fn is_riichi(state: &AgariState) -> Option<(String, i32)> {
-    if state.menzen {
-        Some(("立直".to_string(), 1))
     } else {
         None
     }
@@ -530,10 +599,12 @@ fn is_pinfu(state: &AgariState) -> Option<(String, i32)> {
     }
 }
 
-
 fn is_bakaze(state: &AgariState) -> Option<(String, i32)> {
     if state.koutsu.z[state.bakaze as usize] == 1 {
-        Some((format!("場風 {}", KAZE_STR[state.bakaze as usize]).to_string(), 1))
+        Some((
+            format!("場風 {}", KAZE_STR[state.bakaze as usize]).to_string(),
+            1,
+        ))
     } else {
         None
     }
@@ -541,7 +612,10 @@ fn is_bakaze(state: &AgariState) -> Option<(String, i32)> {
 
 fn is_zikaze(state: &AgariState) -> Option<(String, i32)> {
     if state.koutsu.z[state.zikaze as usize] == 1 {
-        Some((format!("自風 {}", KAZE_STR[state.zikaze as usize]).to_string(), 1))
+        Some((
+            format!("自風 {}", KAZE_STR[state.zikaze as usize]).to_string(),
+            1,
+        ))
     } else {
         None
     }
@@ -576,7 +650,14 @@ fn is_iipeikou(state: &AgariState) -> Option<(String, i32)> {
         return None;
     }
 
-    let peikou = state.shuntsu.m.iter().chain(state.shuntsu.p.iter()).chain(state.shuntsu.s.iter()).map(|x| x >> 1).reduce(|acc, e| acc + e);
+    let peikou = state
+        .shuntsu
+        .m
+        .iter()
+        .chain(state.shuntsu.p.iter())
+        .chain(state.shuntsu.s.iter())
+        .map(|x| x >> 1)
+        .reduce(|acc, e| acc + e);
     if let Some(x) = peikou {
         if x == 1 {
             return Some(("一盃口".to_string(), 1));
@@ -589,7 +670,7 @@ fn is_iipeikou(state: &AgariState) -> Option<(String, i32)> {
 fn is_sanshoku_doushun(state: &AgariState) -> Option<(String, i32)> {
     for i in 0..7 {
         if state.shuntsu.m[i] > 0 && state.shuntsu.p[i] > 0 && state.shuntsu.s[i] > 0 {
-            return Some(("三色同順".to_string(), if state.menzen { 2 } else { 1 } ));
+            return Some(("三色同順".to_string(), if state.menzen { 2 } else { 1 }));
         }
     }
 
@@ -598,13 +679,13 @@ fn is_sanshoku_doushun(state: &AgariState) -> Option<(String, i32)> {
 
 fn is_ittsu(state: &AgariState) -> Option<(String, i32)> {
     if state.shuntsu.m[0] > 0 && state.shuntsu.m[3] > 0 && state.shuntsu.m[6] > 0 {
-        return Some(("一気通貫".to_string(), if state.menzen { 2 } else { 1 } ));
+        return Some(("一気通貫".to_string(), if state.menzen { 2 } else { 1 }));
     }
     if state.shuntsu.p[0] > 0 && state.shuntsu.p[3] > 0 && state.shuntsu.p[6] > 0 {
-        return Some(("一気通貫".to_string(), if state.menzen { 2 } else { 1 } ));
+        return Some(("一気通貫".to_string(), if state.menzen { 2 } else { 1 }));
     }
     if state.shuntsu.s[0] > 0 && state.shuntsu.s[3] > 0 && state.shuntsu.s[6] > 0 {
-        return Some(("一気通貫".to_string(), if state.menzen { 2 } else { 1 } ));
+        return Some(("一気通貫".to_string(), if state.menzen { 2 } else { 1 }));
     }
 
     None
@@ -612,7 +693,7 @@ fn is_ittsu(state: &AgariState) -> Option<(String, i32)> {
 
 fn is_chanta(state: &AgariState) -> Option<(String, i32)> {
     if state.n_yaochu >= 5 && state.n_zihai > 0 && state.n_shuntsu > 0 {
-        return Some(("混全帯么九".to_string(), if state.menzen { 2 } else { 1 } ));
+        return Some(("混全帯么九".to_string(), if state.menzen { 2 } else { 1 }));
     }
 
     None
@@ -662,7 +743,9 @@ fn is_sanshoku_doukou(state: &AgariState) -> Option<(String, i32)> {
 
 fn is_honroutou(state: &AgariState) -> Option<(String, i32)> {
     if state.n_shuntsu == 0 && state.n_zihai > 0 {
-        if (state.n_yaochu >= 4 && state.n_koutsu == 4) || (state.n_yaochu >= 7 && state.n_toitsu >= 7) {
+        if (state.n_yaochu >= 4 && state.n_koutsu == 4)
+            || (state.n_yaochu >= 7 && state.n_toitsu >= 7)
+        {
             return Some(("混老頭".to_string(), 2));
         }
     }
@@ -671,8 +754,9 @@ fn is_honroutou(state: &AgariState) -> Option<(String, i32)> {
 }
 
 fn is_shosangen(state: &AgariState) -> Option<(String, i32)> {
-    if state.koutsu.z[4] + state.koutsu.z[5] + state.koutsu.z[6] == 2 &&
-        state.toitsu.z[4] + state.toitsu.z[5] + state.toitsu.z[6] == 1 {
+    if state.koutsu.z[4] + state.koutsu.z[5] + state.koutsu.z[6] == 2
+        && state.toitsu.z[4] + state.toitsu.z[5] + state.toitsu.z[6] == 1
+    {
         return Some(("小三元".to_string(), 2));
     }
 
@@ -684,22 +768,40 @@ fn is_honitsu(state: &AgariState) -> Option<(String, i32)> {
         return None;
     }
 
-    let manzu: i32 = state.shuntsu.m.iter().chain(state.koutsu.m.iter()).chain(state.toitsu.m.iter()).sum();
+    let manzu: i32 = state
+        .shuntsu
+        .m
+        .iter()
+        .chain(state.koutsu.m.iter())
+        .chain(state.toitsu.m.iter())
+        .sum();
 
     if manzu + state.n_zihai >= 5 {
-        return Some(("混一色".to_string(), if state.menzen { 3 } else { 2 } ));
+        return Some(("混一色".to_string(), if state.menzen { 3 } else { 2 }));
     }
 
-    let pinzu: i32 = state.shuntsu.p.iter().chain(state.koutsu.p.iter()).chain(state.toitsu.p.iter()).sum();
+    let pinzu: i32 = state
+        .shuntsu
+        .p
+        .iter()
+        .chain(state.koutsu.p.iter())
+        .chain(state.toitsu.p.iter())
+        .sum();
 
     if pinzu + state.n_zihai >= 5 {
-        return Some(("混一色".to_string(), if state.menzen { 3 } else { 2 } ));
+        return Some(("混一色".to_string(), if state.menzen { 3 } else { 2 }));
     }
 
-    let souzu: i32 = state.shuntsu.s.iter().chain(state.koutsu.s.iter()).chain(state.toitsu.s.iter()).sum();
+    let souzu: i32 = state
+        .shuntsu
+        .s
+        .iter()
+        .chain(state.koutsu.s.iter())
+        .chain(state.toitsu.s.iter())
+        .sum();
 
     if souzu + state.n_zihai >= 5 {
-        return Some(("混一色".to_string(), if state.menzen { 3 } else { 2 } ));
+        return Some(("混一色".to_string(), if state.menzen { 3 } else { 2 }));
     }
 
     None
@@ -707,7 +809,7 @@ fn is_honitsu(state: &AgariState) -> Option<(String, i32)> {
 
 fn is_junchan(state: &AgariState) -> Option<(String, i32)> {
     if state.n_yaochu >= 5 && state.n_shuntsu > 0 && state.n_zihai == 0 {
-        return Some(("混全帯么九".to_string(), if state.menzen { 2 } else { 1 } ));
+        return Some(("混全帯么九".to_string(), if state.menzen { 2 } else { 1 }));
     }
 
     None
@@ -718,7 +820,14 @@ fn is_ryampeikou(state: &AgariState) -> Option<(String, i32)> {
         return None;
     }
 
-    let peikou = state.shuntsu.m.iter().chain(state.shuntsu.p.iter()).chain(state.shuntsu.s.iter()).map(|x| x >> 1).reduce(|acc, e| acc + e);
+    let peikou = state
+        .shuntsu
+        .m
+        .iter()
+        .chain(state.shuntsu.p.iter())
+        .chain(state.shuntsu.s.iter())
+        .map(|x| x >> 1)
+        .reduce(|acc, e| acc + e);
     if let Some(x) = peikou {
         if x == 2 {
             return Some(("二盃口".to_string(), 3));
@@ -732,22 +841,40 @@ fn is_chinitsu(state: &AgariState) -> Option<(String, i32)> {
         return None;
     }
 
-    let manzu: i32 = state.shuntsu.m.iter().chain(state.koutsu.m.iter()).chain(state.toitsu.m.iter()).sum();
+    let manzu: i32 = state
+        .shuntsu
+        .m
+        .iter()
+        .chain(state.koutsu.m.iter())
+        .chain(state.toitsu.m.iter())
+        .sum();
 
     if manzu >= 5 {
-        return Some(("清一色".to_string(), if state.menzen { 6 } else { 5 } ));
+        return Some(("清一色".to_string(), if state.menzen { 6 } else { 5 }));
     }
 
-    let pinzu: i32 = state.shuntsu.p.iter().chain(state.koutsu.p.iter()).chain(state.toitsu.p.iter()).sum();
+    let pinzu: i32 = state
+        .shuntsu
+        .p
+        .iter()
+        .chain(state.koutsu.p.iter())
+        .chain(state.toitsu.p.iter())
+        .sum();
 
     if pinzu >= 5 {
-        return Some(("清一色".to_string(), if state.menzen { 6 } else { 5 } ));
+        return Some(("清一色".to_string(), if state.menzen { 6 } else { 5 }));
     }
 
-    let souzu: i32 = state.shuntsu.s.iter().chain(state.koutsu.s.iter()).chain(state.toitsu.s.iter()).sum();
+    let souzu: i32 = state
+        .shuntsu
+        .s
+        .iter()
+        .chain(state.koutsu.s.iter())
+        .chain(state.toitsu.s.iter())
+        .sum();
 
     if souzu >= 5 {
-        return Some(("清一色".to_string(), if state.menzen { 6 } else { 5 } ));
+        return Some(("清一色".to_string(), if state.menzen { 6 } else { 5 }));
     }
 
     None
@@ -790,8 +917,16 @@ fn is_sushiho(state: &AgariState) -> Option<(String, i32)> {
         return Some(("大四喜".to_string(), -2));
     }
 
-    if state.koutsu.z[0] + state.koutsu.z[1] + state.koutsu.z[2] + state.koutsu.z[3]
-        + state.toitsu.z[0] + state.toitsu.z[1] + state.toitsu.z[2] + state.toitsu.z[3] >= 4 {
+    if state.koutsu.z[0]
+        + state.koutsu.z[1]
+        + state.koutsu.z[2]
+        + state.koutsu.z[3]
+        + state.toitsu.z[0]
+        + state.toitsu.z[1]
+        + state.toitsu.z[2]
+        + state.toitsu.z[3]
+        >= 4
+    {
         return Some(("小四喜".to_string(), -1));
     }
 
@@ -799,14 +934,13 @@ fn is_sushiho(state: &AgariState) -> Option<(String, i32)> {
 }
 
 fn is_tsuiso(state: &AgariState) -> Option<(String, i32)> {
-
     let z_toitsu: i32 = state.toitsu.z.iter().sum();
     if z_toitsu >= 7 {
         return Some(("字一色".to_string(), -1));
     }
 
     let zihai: i32 = state.koutsu.z.iter().chain(state.toitsu.z.iter()).sum();
-    
+
     if zihai >= 5 {
         return Some(("字一色".to_string(), -1));
     }
@@ -815,11 +949,19 @@ fn is_tsuiso(state: &AgariState) -> Option<(String, i32)> {
 }
 
 fn is_ryuiso(state: &AgariState) -> Option<(String, i32)> {
-    let n_atama = state.toitsu.s[1] + state.toitsu.s[2] + state.toitsu.s[3]
-        + state.toitsu.s[5] + state.toitsu.s[7] + state.toitsu.z[5];
+    let n_atama = state.toitsu.s[1]
+        + state.toitsu.s[2]
+        + state.toitsu.s[3]
+        + state.toitsu.s[5]
+        + state.toitsu.s[7]
+        + state.toitsu.z[5];
     let n_shuntsu = state.shuntsu.s[1];
-    let n_koutsu = state.koutsu.s[1] + state.koutsu.s[2] + state.koutsu.s[3]
-        + state.koutsu.s[5] + state.koutsu.s[7] + state.koutsu.z[5];
+    let n_koutsu = state.koutsu.s[1]
+        + state.koutsu.s[2]
+        + state.koutsu.s[3]
+        + state.koutsu.s[5]
+        + state.koutsu.s[7]
+        + state.koutsu.z[5];
     if n_atama > 0 && n_shuntsu + n_koutsu >= 4 {
         return Some(("緑一色".to_string(), -1));
     }
@@ -828,12 +970,18 @@ fn is_ryuiso(state: &AgariState) -> Option<(String, i32)> {
 }
 
 fn is_chinroto(state: &AgariState) -> Option<(String, i32)> {
-    let n_koutsu = state.koutsu.m[0] + state.koutsu.m[8] +
-        state.koutsu.p[0] + state.koutsu.p[8] +
-        state.koutsu.s[0] + state.koutsu.s[8];
-    let n_atama = state.toitsu.m[0] + state.toitsu.m[8] +
-        state.toitsu.p[0] + state.toitsu.p[8] +
-        state.toitsu.s[0] + state.toitsu.s[8];
+    let n_koutsu = state.koutsu.m[0]
+        + state.koutsu.m[8]
+        + state.koutsu.p[0]
+        + state.koutsu.p[8]
+        + state.koutsu.s[0]
+        + state.koutsu.s[8];
+    let n_atama = state.toitsu.m[0]
+        + state.toitsu.m[8]
+        + state.toitsu.p[0]
+        + state.toitsu.p[8]
+        + state.toitsu.s[0]
+        + state.toitsu.s[8];
     if n_atama > 0 && n_koutsu >= 4 {
         return Some(("清老頭".to_string(), -1));
     }
@@ -862,7 +1010,6 @@ impl AgariState {
     pub fn get_yaku_list(&self) -> Vec<(String, i32)> {
         let check_list = [
             is_menzen_tsumo,
-            is_riichi,
             is_tanyao,
             is_pinfu,
             is_bakaze,
@@ -898,7 +1045,6 @@ impl AgariState {
 
         check_list.iter().flat_map(|f| f(self)).collect()
     }
-
 
     /// 上がり点を計算します
     pub fn get_agari(&self, yaku: &Vec<(String, i32)>) -> Agari {
@@ -938,5 +1084,3 @@ impl AgariState {
         agari
     }
 }
-
-
