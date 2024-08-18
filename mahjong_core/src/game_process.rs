@@ -240,7 +240,7 @@ impl GameStateT {
     ) -> anyhow::Result<()> {
         let player = &mut self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
-        let kawahai = match index {
+        let mut kawahai = match index {
             13 => player.tsumohai.clone(),
             _ => {
                 let p = tehai.remove(index);
@@ -266,6 +266,7 @@ impl GameStateT {
             player.is_riichi = true;
             player.is_ippatsu = true;
             player.score -= 1000;
+            kawahai.is_riichi = true;
         } else {
             player.is_ippatsu = false;
         }
