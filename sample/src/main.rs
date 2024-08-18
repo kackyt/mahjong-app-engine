@@ -1,54 +1,60 @@
 use std::ffi::CString;
 
-use clap::Parser;
 use anyhow::ensure;
-use crossterm::{terminal::{enable_raw_mode, disable_raw_mode}, event::{Event, KeyCode, read}};
-use mahjong_core::{load_pailist::load_pailist, mahjong_generated::open_mahjong::{GameStateT, PaiT, ActionType}, shanten::PaiState, play_log::PlayLog};
+use clap::Parser;
+use crossterm::{
+    event::{read, Event, KeyCode},
+    terminal::{disable_raw_mode, enable_raw_mode},
+};
+use mahjong_core::{
+    load_pailist::load_pailist,
+    mahjong_generated::open_mahjong::{ActionType, GameStateT, PaiT},
+    play_log::PlayLog,
+    shanten::PaiState,
+};
 
 #[derive(Parser, Debug)]
 #[command(author, about, version)]
 struct Command {
     #[arg(short, long)]
     pai_list_file: Option<String>,
-    #[arg(short, long, default_value_t=0)]
-    index: usize
+    #[arg(short, long, default_value_t = 0)]
+    index: usize,
 }
 
 fn cmd() -> anyhow::Result<u32> {
     loop {
         match read()? {
-            Event::Key(event) => {
-                match event.code {
-                    KeyCode::Char(c) => {
-                        if c == '-' {
-                            return Ok(10);
-                        }
-
-                        if c == '^' {
-                            return Ok(11);
-                        }
-
-                        if c == '\\' {
-                            return Ok(12)
-                        }
-
-                        if c == '0' {
-                            return Ok(9);
-                        }
-
-                        if c >= '1' && c <= '9' {
-                            return Ok(c as u32 - '1' as u32);
-                        }
-
-                        ensure!(false, "{} unknown code", c);
-                    },
-                    KeyCode::Backspace => {
-                        return Ok(13);    
-                    },
-
-                    _ => {
-                        println!("unknown\r");
+            Event::Key(event) => match event.code {
+                KeyCode::Char(c) => {
+                    if c == '-' {
+                        return Ok(10);
                     }
+
+                    if c == '^' {
+                        return Ok(11);
+                    }
+
+                    if c == '\\' {
+                        return Ok(12);
+                    }
+
+                    if c == '0' {
+                        return Ok(9);
+                    }
+
+                    if c >= '1' && c <= '9' {
+                        return Ok(c as u32 - '1' as u32);
+                    }
+
+                    ensure!(false, "{} unknown code", c);
+                }
+                KeyCode::Backspace => {
+                    return Ok(13);
+                }
+
+                _ => {
+                    println!("unknown\r");
                 }
             },
             _ => {}
@@ -60,14 +66,16 @@ fn main() -> anyhow::Result<()> {
     let args = Command::parse();
     let mut game_state: GameStateT = Default::default();
     let title: CString = CString::new("title")?;
-    let keys =['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', '¥'];
+    let keys = [
+        '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '^', '¥',
+    ];
     let mut play_log = PlayLog::new();
 
     enable_raw_mode()?;
 
     println!("initialize\r");
 
-    game_state.create(title.as_bytes(), 1);
+    game_state.create(title.as_bytes(), 1, &mut play_log);
     if let Some(pai_list) = args.pai_list_file {
         let hai_ids = load_pailist(pai_list, args.index)?;
         game_state.load(&hai_ids);
