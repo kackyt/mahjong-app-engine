@@ -139,7 +139,7 @@ impl GameStateT {
         // 配牌
         self.taku_cursol = 14;
         self.dora_len = 1;
-        self.uradora_len = 0;
+        self.uradora_len = 1;
         self.seq = 0;
         let dt = Utc::now();
         self.kyoku_id = (dt.timestamp() / (24 * 3600) * 100000) as u64;
@@ -171,6 +171,8 @@ impl GameStateT {
 
             player.cursol = 14 + (idx * if idx < 2 { 31 } else { 30 });
             player.kawahai_len = 0;
+            player.is_ippatsu = false;
+            player.is_riichi = false;
 
             if self.is_non_duplicate {
                 cursol = &mut self.taku_cursol;
@@ -230,30 +232,53 @@ impl GameStateT {
         Ok(())
     }
 
-    pub fn sutehai(&mut self, play_log: &mut PlayLog, index: usize, is_riichi: bool) {
+    pub fn sutehai(
+        &mut self,
+        play_log: &mut PlayLog,
+        index: usize,
+        is_riichi: bool,
+    ) -> anyhow::Result<()> {
         let player = &mut self.players[self.teban as usize];
         let mut tehai: Vec<PaiT> = player.tehai.iter().cloned().collect();
+        let mut kawahai = match index {
+            13 => player.tsumohai.clone(),
+            _ => {
+                let p = tehai.remove(index);
+                tehai.push(player.tsumohai.clone());
+                tehai.sort_unstable();
+                p
+            }
+        };
+
+        ensure!(
+            !(player.is_riichi && index != 13),
+            "リーチ後はツモ切りのみです"
+        );
 
         if is_riichi {
+            ensure!(!player.is_riichi, "すでにリーチしています");
+            ensure!(player.mentsu_len == 0, "面前ではありません");
+            // シャンテン数チェック
+            let mut state = PaiState::from(&tehai);
+            let shanten = state.get_shanten(player.mentsu_len as usize);
+            ensure!(shanten == 0, "テンパイではありません");
+
             player.is_riichi = true;
             player.is_ippatsu = true;
             player.score -= 1000;
+            kawahai.is_riichi = true;
         } else {
             player.is_ippatsu = false;
         }
 
         if index != 13 {
-            let kawahai = tehai.remove(index);
-            tehai.push(player.tsumohai.clone());
-            tehai.sort_unstable();
-
             for (i, item) in tehai.into_iter().enumerate() {
                 player.tehai[i] = item;
             }
-            player.kawahai[player.kawahai_len as usize] = kawahai;
-        } else {
-            player.kawahai[player.kawahai_len as usize] = player.tsumohai.clone();
         }
+
+        player.kawahai[player.kawahai_len as usize] = kawahai;
+
         play_log.append_actions_log(
             self.kyoku_id,
             self.teban as i32,
@@ -271,6 +296,8 @@ impl GameStateT {
         if self.teban == self.player_len {
             self.teban = 0;
         }
+
+        Ok(())
     }
 
     pub fn tsumo_agari(&mut self, play_log: &mut PlayLog) -> anyhow::Result<Agari> {
