@@ -1,7 +1,7 @@
 use anyhow::bail;
 
 use crate::mahjong_generated::open_mahjong::{
-    GameStateT, Mentsu, MentsuFlag, MentsuType, Pai, Player, PlayerT,
+    GameStateT, Mentsu, MentsuFlag, MentsuType, Pai, PlayerT,
 };
 
 #[derive(Default, Debug)]
@@ -500,7 +500,7 @@ impl AgariBehavior for GameStateT {
 
     fn get_dora_yaku(
         &self,
-        _who: usize,
+        who: usize,
         mentsu: &Vec<Mentsu>,
         fulo: &Vec<Mentsu>,
         nukidora: usize,
@@ -508,6 +508,7 @@ impl AgariBehavior for GameStateT {
         let mut ret = Vec::new();
         let dora_pais = self.get_dora();
         let uradora_pais = self.get_uradora();
+        let player = &self.players[who];
 
         let dora_num = mentsu
             .iter()
@@ -523,19 +524,22 @@ impl AgariBehavior for GameStateT {
             .reduce(|acc, e| acc + e)
             .unwrap_or(0)
             + nukidora;
-        let uradora_num = mentsu
-            .iter()
-            .chain(fulo.iter())
-            .flat_map(|m| {
-                m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
-                    uradora_pais
-                        .iter()
-                        .filter(|d| dora_pai_num(d.pai_num) == p.pai_num())
-                        .count()
+        let uradora_num = match player.is_riichi {
+            true => mentsu
+                .iter()
+                .chain(fulo.iter())
+                .flat_map(|m| {
+                    m.pai_list().iter().take(m.pai_len() as usize).map(|p| {
+                        uradora_pais
+                            .iter()
+                            .filter(|d| dora_pai_num(d.pai_num) == p.pai_num())
+                            .count()
+                    })
                 })
-            })
-            .reduce(|acc, e| acc + e)
-            .unwrap_or(0);
+                .reduce(|acc, e| acc + e)
+                .unwrap_or(0),
+            false => 0,
+        };
 
         if dora_num > 0 {
             ret.push(("ドラ".to_string(), dora_num as i32));

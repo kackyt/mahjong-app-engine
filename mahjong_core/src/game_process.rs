@@ -139,7 +139,7 @@ impl GameStateT {
         // 配牌
         self.taku_cursol = 14;
         self.dora_len = 1;
-        self.uradora_len = 0;
+        self.uradora_len = 1;
         self.seq = 0;
         let dt = Utc::now();
         self.kyoku_id = (dt.timestamp() / (24 * 3600) * 100000) as u64;
